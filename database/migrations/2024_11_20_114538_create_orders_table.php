@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id('id'); // Tạo cột OrderId kiểu int và là khóa chính
+            $table->foreignId("user_id");
             $table->string('phonenumber'); // Số điện thoại kiểu varchar
             $table->text('address'); // Địa chỉ kiểu text
             $table->timestamp('order_date')->useCurrent(); // Lấy giá trị thời gian hiện tại mặc định

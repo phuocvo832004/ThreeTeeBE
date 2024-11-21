@@ -20,7 +20,7 @@ Route::patch('products/{id}', [ProductController::class, 'patchUpdateProduct']);
 // Route::apiResource('orders',OrderController::class)->only([
 //   'index','show','store','update'
 // ]);
-Route::apiResource('orders', OrderController::class);
+//Route::apiResource('orders', OrderController::class);
 
 
 Route::apiResource('designs', DesignController::class);
@@ -31,3 +31,8 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 require __DIR__.'/auth.php';
 
+
+
+Route::middleware('auth:sanctum')->group(function(){
+    Route::apiResource('orders',OrderController::class);
+});
