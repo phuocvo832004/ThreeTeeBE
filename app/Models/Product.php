@@ -22,5 +22,15 @@ class Product extends Model
         'rate',
     ];
 
+    public function images()
+    {
+        return $this->hasMany(Image::class);
+    }
+
+    public function designs()
+    {
+        return $this->hasMany(Design::class);
+    }
+
     public $timestamps = true; 
 }

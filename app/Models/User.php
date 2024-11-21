@@ -48,4 +48,14 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    public function designs()
+    {
+        return $this->hasMany(Design::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin'; 
+    }
 }
