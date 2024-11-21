@@ -37,10 +37,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
     ];
 
-    public function isAdmin(): bool
-    {
-        return $this->role === 'admin'; // Hoặc logic kiểm tra quyền admin khác
-    }
     /**
      * Get the attributes that should be cast.
      *
@@ -54,8 +50,18 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+
     public function orders() :HasMany
     {
         return $this->hasMany(Order::class);
+    }
+    public function designs()
+    {
+        return $this->hasMany(Design::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin'; 
     }
 }

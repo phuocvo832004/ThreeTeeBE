@@ -3,25 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\Design;
-use App\Models\User;
-use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\DesignResource;
+use App\Http\Resources\DesignCollection;
 
 class DesignController extends Controller
 {
+
     public function index()
     {
-        $designs = Design::with(['user', 'product'])->get();
-        return response()->json($designs);
+        $designs = Design::with(['user', 'product'])->paginate(); 
+        return new DesignCollection($designs);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'product_id' => 'required|integer',  
-            'user_id' => 'required|integer',     
+            'product_id' => 'required|integer',
+            'user_id' => 'required|integer',
             'file' => 'required|file|max:20480',
-            'description' => 'nullable|string|max:255', 
+            'description' => 'nullable|string|max:255',
         ]);
 
         $file = $request->file('file');
@@ -35,13 +37,10 @@ class DesignController extends Controller
             'description' => $validated['description'] ?? null,
         ]);
 
-        return response()->json([
-            'message' => 'File uploaded successfully',
-            'data' => $design,
-        ], 201);
+        return (new DesignResource($design))
+            ->additional(['message' => 'File uploaded successfully']);
     }
 
-    
 
     public function show($id)
     {
@@ -51,8 +50,9 @@ class DesignController extends Controller
             return response()->json(['message' => 'Design not found'], 404);
         }
 
-        return response()->json($design);
+        return new DesignResource($design);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -77,7 +77,7 @@ class DesignController extends Controller
 
         $design->update($validated);
 
-        return response()->json($design);
+        return new DesignResource($design);
     }
 
     public function destroy($id)

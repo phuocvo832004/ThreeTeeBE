@@ -33,4 +33,13 @@ class Design extends Model
     {
         return Storage::url($this->file_path);
     }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('creator', function (Builder $builder) {
+            if (!Auth::check() || !Auth::user()->isAdmin()) {
+                $builder->where('user_id', Auth::id());
+            }
+        });
+    }
 }

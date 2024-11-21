@@ -4,13 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductResource;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::all();
-        return response()->json($products);
+
+        $products = QueryBuilder::for(Product::class)
+        ->allowedFilters('name' )
+        ->defaultSort('-create')
+        ->allowedSorts('price', 'rate')
+        ->paginate();
+
+        return new ProductCollection($products);
     }
 
     public function store(Request $request)
@@ -25,30 +34,32 @@ class ProductController extends Controller
             'size' => 'required|integer',
             'rate' => 'numeric|nullable|min:0|max:5',
         ]);
-
+    
         $product = Product::create($validatedData);
-        return response()->json($product, 201); 
+    
+        return new ProductResource($product);
     }
 
     public function show($id)
     {
         $product = Product::find($id);
-
+    
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-
-        return response()->json($product);
+    
+        return new ProductResource($product); 
     }
+    
 
     public function update(Request $request, $id)
     {
         $product = Product::find($id);
-
+    
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-
+    
         $validatedData = $request->validate([
             'name' => 'string|max:30',
             'amount' => 'integer',
@@ -59,33 +70,35 @@ class ProductController extends Controller
             'size' => 'integer',
             'rate' => 'numeric|nullable|min:0|max:5',
         ]);
-
+    
         $product->update($validatedData);
-
-        return response()->json($product);
+    
+        return new ProductResource($product); 
     }
+    
 
     public function destroy($id)
     {
         $product = Product::find($id);
-
+    
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-
+    
         $product->delete();
-
+    
         return response()->json(['message' => 'Product deleted successfully']);
     }
+    
 
     public function patchUpdateProduct(Request $request, $id)
     {
         $product = Product::find($id);
-
+    
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-
+    
         $validatedData = $request->validate([
             'name' => 'nullable|string|max:30',
             'amount' => 'nullable|integer',
@@ -96,9 +109,10 @@ class ProductController extends Controller
             'size' => 'nullable|integer',
             'rate' => 'nullable|numeric|min:0|max:5',
         ]);
-
+    
         $product->update($validatedData);
-
-        return response()->json($product);
+    
+        return new ProductResource($product); 
     }
+    
 }
