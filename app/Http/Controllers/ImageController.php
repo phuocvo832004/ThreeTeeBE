@@ -21,31 +21,41 @@ class ImageController extends Controller
         $validated = $request->validate([
             'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:20480',
         ]);
-
+    
         $image = $request->file('image');
-
+    
         if (!$image) {
             return response()->json(['message' => 'No image file uploaded'], 400);
         }
-
+    
         try {
             $cloudinary = new Cloudinary();
             $preset = 'unsigned'; 
-
+    
             $upload = $cloudinary->uploadApi()->upload(
                 $image->getRealPath(),
                 [
                     'upload_preset' => $preset,
                 ]
             );
-
+    
             $imageUrl = $upload['secure_url'];
-
-            return response()->json(['image_url' => $imageUrl], 200);
+    
+            // Lưu thông tin hình ảnh vào cơ sở dữ liệu
+            $imageData = [
+                'image_link' => $imageUrl,
+                'product_id' => $request->product_id, // Nếu có product_id từ request
+            ];
+    
+            $image = Image::create($imageData);
+    
+            return response()->json(['image_url' => $imageUrl, 'image' => $image], 200);
+    
         } catch (\Exception $e) {
             return response()->json(['message' => 'Upload failed: ' . $e->getMessage()], 500);
         }
     }
+    
 
     public function show($id)
     {
