@@ -32,5 +32,10 @@ class Product extends Model
         return $this->hasMany(Design::class);
     }
 
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class);
+    }
+
     public $timestamps = true; 
 }

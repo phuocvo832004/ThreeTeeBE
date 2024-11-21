@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\ImageController;
+use App\Http\Controllers\OrderDetailController;
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -27,6 +28,7 @@ Route::patch('products/{id}', [ProductController::class, 'patchUpdateProduct']);
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('designs', DesignController::class);
     Route::apiResource('orders',OrderController::class);
+    Route::apiResource('order_details',OrderDetailController::class);
 
 });
 

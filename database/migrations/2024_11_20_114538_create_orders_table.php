@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->id('id'); // Tạo cột OrderId kiểu int và là khóa chính
+            $table->id('id');
             $table->foreignId("user_id");
-            $table->string('phonenumber'); // Số điện thoại kiểu varchar
-            $table->text('address'); // Địa chỉ kiểu text
-            $table->timestamp('order_date')->useCurrent(); // Lấy giá trị thời gian hiện tại mặc định
-            $table->integer('totalprice'); // Tổng giá kiểu int
-            $table->enum('status', ['pending', 'cancelled', 'delivery', 'success'])->default('pending'); // Trạng thái đơn hàng
-            $table->date('payment_date')->nullable(); // Ngày thanh toán (có thể null)
-            $table->enum('payment_status', ['unpaid', 'paid', 'cancelled'])->default('unpaid'); // Trạng thái thanh toán
-            $table->timestamps(); // Cột created_at và updated_at tự động
+            $table->string('phonenumber'); 
+            $table->text('address'); 
+            $table->timestamp('order_date')->useCurrent(); 
+            $table->integer('totalprice'); 
+            $table->enum('status', ['pending', 'cancelled', 'delivery', 'success'])->default('pending'); 
+            $table->date('payment_date')->nullable(); 
+            $table->enum('payment_status', ['unpaid', 'paid', 'cancelled'])->default('unpaid'); 
+            $table->timestamps(); 
 
         });
     }
