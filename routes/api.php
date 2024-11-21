@@ -15,14 +15,6 @@ use App\Http\Controllers\DesignController;
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::post('login', [AuthController::class, 'login']);
-
-Route::post('register', [AuthController::class, 'register']);
-Route::post('forgot-password', [ForgotPasswordController::class, 'forgotPassword']);
-Route::post('reset-password', [ForgotPasswordController::class, 'resetPassword']);
-Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify']);
-
-
 Route::apiResource('products', ProductController::class);
 Route::patch('products/{id}', [ProductController::class, 'patchUpdateProduct']); 
 // Route::apiResource('orders',OrderController::class)->only([
