@@ -5,22 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Image extends Model
+class Review extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'product_id',
-        'image_link', 
+        'order_id',
+        'user_id',
+        'score',
+        'comment',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function getFileUrlAttribute()
+    public function order()
     {
-        return $this->image_link; 
+        return $this->belongsTo(Order::class);
     }
 }

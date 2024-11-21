@@ -1,45 +1,50 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Design;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DesignResource;
 use App\Http\Resources\DesignCollection;
+use Illuminate\Support\Facades\Auth;
 
 class DesignController extends Controller
 {
 
     public function index()
     {
-        $designs = Design::with(['user', 'product'])->paginate(); 
+        if (Auth::check() && Auth::user()->isAdmin()) {
+            $designs = Design::withoutGlobalScope('creator')->with(['user', 'product'])->paginate();
+        } else {
+            $designs = Design::with(['user', 'product'])->paginate();
+        }
+    
         return new DesignCollection($designs);
     }
+    
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'product_id' => 'required|integer',
-            'user_id' => 'required|integer',
             'file' => 'required|file|max:20480',
             'description' => 'nullable|string|max:255',
         ]);
-
+    
         $file = $request->file('file');
-
         $path = $file->storeAs('uploads', $file->getClientOriginalName(), 'public');
-
+    
         $design = Design::create([
             'product_id' => $validated['product_id'],
-            'user_id' => $validated['user_id'],
+            'user_id' => Auth::id(), // Always use the logged-in user's ID
             'file_path' => $path,
             'description' => $validated['description'] ?? null,
         ]);
-
+    
         return (new DesignResource($design))
             ->additional(['message' => 'File uploaded successfully']);
     }
+    
 
 
     public function show($id)

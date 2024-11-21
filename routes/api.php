@@ -9,7 +9,10 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DesignController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ImageController;
 
+require __DIR__.'/auth.php';
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
@@ -36,5 +39,8 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('images', ImageController::class);
 });
-require __DIR__.'/auth.php';
+
+Route::middleware(['auth:sanctum'])->group(function(){
+    Route::apiResource('reviews', ReviewController::class);
+});
 
