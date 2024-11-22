@@ -14,13 +14,6 @@ class ImageResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
-            'id' => $this->id,
-            'product_id' => $this->product_id,
-            'image_link' => $this->image_link,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'product' => $this->whenLoaded('product'),
-        ];
+        return parent::toArray($request);
     }
 }
