@@ -41,4 +41,8 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('images', ImageController::class);
 });
 
+Route::middleware(['auth:sanctum'])->group(function(){
+    Route::apiResource('reviews', ImageController::class);
+});
+
 

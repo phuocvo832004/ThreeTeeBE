@@ -9,12 +9,22 @@ use Illuminate\Support\Facades\Validator;
 
 class ReviewController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Sử dụng Collection cho danh sách Review
-        $reviews = Review::with(['user', 'product', 'order'])->paginate();
+        $productId = $request->input('product_id');
+        $orderId = $request->input('order_id');
+        $reviews = Review::with(['user', 'product', 'order'])
+                          ->when($productId, function ($query, $productId) {
+                              return $query->where('product_id', $productId);
+                          })
+                          ->when($orderId, function ($query, $orderId) {
+                              return $query->where('order_id', $orderId);
+                          })
+                          ->paginate();
+    
         return ReviewResource::collection($reviews);
     }
+    
 
     public function store(Request $request)
     {
