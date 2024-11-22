@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use Spatie\QueryBuilder\QueryBuilder;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
@@ -24,6 +25,14 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Authentication required'], 401);
+        }
+    
+        if (!Auth::user()->isAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+    
         $validatedData = $request->validate([
             'name' => 'required|string|max:30',
             'amount' => 'required|integer',
@@ -35,10 +44,11 @@ class ProductController extends Controller
             'rate' => 'numeric|nullable|min:0|max:5',
         ]);
     
-        $product = Product::create($validatedData);
+        $product = Product::withoutGlobalScopes()->create($validatedData);
     
         return new ProductResource($product);
     }
+    
 
     public function show($id)
     {

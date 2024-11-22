@@ -19,8 +19,7 @@ require __DIR__.'/auth.php';
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::apiResource('products', ProductController::class);
-Route::patch('products/{id}', [ProductController::class, 'patchUpdateProduct']); 
+ 
 // Route::apiResource('orders',OrderController::class)->only([
 //   'index','show','store','update'
 // ]);
@@ -44,6 +43,8 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('images', ImageController::class);
+    Route::apiResource('products', ProductController::class);
+    Route::patch('products/{id}', [ProductController::class, 'patchUpdateProduct']);
 });
 
 Route::middleware(['auth:sanctum'])->group(function(){
