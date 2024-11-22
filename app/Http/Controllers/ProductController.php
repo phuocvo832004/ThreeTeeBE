@@ -64,6 +64,15 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
+
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Authentication required'], 401);
+        }
+    
+        if (!Auth::user()->isAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $product = Product::find($id);
     
         if (!$product) {
@@ -89,6 +98,15 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
+
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Authentication required'], 401);
+        }
+    
+        if (!Auth::user()->isAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $product = Product::find($id);
     
         if (!$product) {
@@ -103,6 +121,14 @@ class ProductController extends Controller
 
     public function patchUpdateProduct(Request $request, $id)
     {
+        if (!Auth::check()) {
+            return response()->json(['message' => 'Authentication required'], 401);
+        }
+    
+        if (!Auth::user()->isAdmin()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        
         $product = Product::find($id);
     
         if (!$product) {

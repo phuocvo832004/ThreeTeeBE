@@ -41,14 +41,22 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware(['auth:sanctum'])->group(function(){
-    Route::apiResource('images', ImageController::class);
-    Route::apiResource('products', ProductController::class);
+Route::get('/products', [ProductController::class, 'index']);
+
+Route::middleware(['auth:sanctum'])->group(function() {
     Route::patch('products/{id}', [ProductController::class, 'patchUpdateProduct']);
+    Route::put('products/{id}', [ProductController::class, 'update']);
+    Route::post('products', [ProductController::class, 'store']); 
+    Route::delete('products/{id}', [ProductController::class, 'destroy']); 
 });
+
 
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('reviews', ImageController::class);
+});
+
+Route::middleware(['auth:sanctum'])->group(function(){
+    Route::apiResource('images', ImageController::class);
 });
 
 
