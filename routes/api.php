@@ -32,6 +32,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('designs', DesignController::class);
     Route::apiResource('orders',OrderController::class);
     Route::apiResource('order_details',OrderDetailController::class);
+    Route::put('/orders/{order_id}/orderdetails/{orderDetail}', [OrderDetailController::class, 'update']);
 
 });
 

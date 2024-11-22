@@ -22,7 +22,7 @@ class UpdateOrderDetailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => 'somtimes|required|integer|min:1'
+            'amount' => 'sometimes|required|integer|min:1'
         ];
     }
 }
