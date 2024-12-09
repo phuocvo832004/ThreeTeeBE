@@ -39,8 +39,7 @@ class RegisteredUserController extends Controller
 
 
         return response()->json([
-            'message' => 'User Created',
-            'user' => $user
+            'message' => 'Đã gửi email xác thực',
         ], 201);
         
     }

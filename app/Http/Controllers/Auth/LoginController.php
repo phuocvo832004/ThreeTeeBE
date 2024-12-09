@@ -18,17 +18,24 @@ class LoginController extends Controller
     public function store(LoginRequest $request): JsonResponse
     {
         $request->authenticate();
-
-        $user = User::where('email',$request->email)->first();
-        
-        $data= [
-            'token'=>$user->createToken("token for". $user->email)->plainTextToken,
-            'user' => [
-                'name' => $user->name,
-                'email' => $user->email
-            ]
+    
+        // Lấy thông tin người dùng từ email
+        $user = User::where('email', $request->email)->first();
+    
+        // Kiểm tra xem email đã được xác minh chưa
+        if (!$user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Email chưa được xác minh. Vui lòng xác minh email trước khi đăng nhập.',
+            ], 403); // HTTP 403: Forbidden
+        }
+    
+        // Tạo token và trả về thông tin người dùng
+        $data = [
+            'token' => $user->createToken("token for " . $user->email)->plainTextToken,
+            'user' => $user
         ];
-        return response()->json($data,201);
+    
+        return response()->json($data, 201); // HTTP 201: Created
     }
     
 

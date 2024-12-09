@@ -28,16 +28,11 @@ class AppServiceProvider extends ServiceProvider
             return config('app.frontend_url')."/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
         });
 
-        VerifyEmail::createUrlUsing(function (object $notifiable){
-            $verificationUrl = URL::temporarySignedRoute(
-                'verification.verify',
-                Carbon::now()->addMinutes(Config::get('auth.verification.expire',60)),
-                [
-                    'id' => $notifiable->getKey(),
-                    'hash' => sha1($notifiable->getEmailForVerification()),
-                ]
-                );
-            return $verificationUrl;
+        VerifyEmail::createUrlUsing(function (object $notifiable) {
+            $hash = sha1($notifiable->getEmailForVerification());
+            $url = config('app.frontend_url') . "/verify-email?id=" . $notifiable->getKey() . "&hash=" . $hash;
+        
+            return $url;
         });
     }
 }
