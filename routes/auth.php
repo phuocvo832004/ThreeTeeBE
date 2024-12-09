@@ -32,6 +32,12 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])
     
 
 Route::get('/verify-email', function (Request $request) {
+    // Kiểm tra chữ ký của URL
+    if (!$request->hasValidSignature()) {
+        return response()->json(['message' => 'Invalid or expired verification link'], 400);
+    }
+
+    // Lấy ID và hash từ query string
     $userId = $request->query('id');
     $hash = $request->query('hash');
 
@@ -51,16 +57,18 @@ Route::get('/verify-email', function (Request $request) {
     if ($hash !== $expectedHash) {
         return response()->json(['message' => 'Invalid verification link'], 400);
     }
+
+    // Kiểm tra nếu email đã được xác minh
     if ($user->hasVerifiedEmail()) {
         return response()->json(['message' => 'Email is already verified']);
     }
+
     // Đánh dấu email đã xác thực
-    if (!$user->hasVerifiedEmail()) {
-        $user->markEmailAsVerified();
-    }
+    $user->markEmailAsVerified();
 
     return response()->json(['message' => 'Email verified successfully']);
-});
+})->middleware('signed')->name('verification.verify');
+
 
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
     ->middleware(['auth:sanctum', 'throttle:6,1'])
