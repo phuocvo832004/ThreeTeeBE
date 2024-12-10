@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class Design extends Model
 {
@@ -15,26 +14,29 @@ class Design extends Model
     protected $fillable = [
         'user_id',
         'product_id',
-        'file_path',
+        'file_path', // URL công khai từ GitHub hoặc jsDelivr
         'description',
     ];
 
+    /**
+     * Quan hệ với User
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Quan hệ với Product
+     */
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function getFileUrlAttribute()
-    {
-        return Storage::url($this->file_path);
-    }
-
-
+    /**
+     * Scope để lọc các thiết kế theo người tạo
+     */
     protected static function booted(): void
     {
         static::addGlobalScope('creator', function (Builder $builder) {
@@ -43,5 +45,4 @@ class Design extends Model
             }
         });
     }
-
 }

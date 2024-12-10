@@ -28,11 +28,18 @@ require __DIR__.'/auth.php';
 
 
 Route::middleware(['auth:sanctum'])->group(function(){
-    Route::apiResource('designs', DesignController::class);
     Route::apiResource('orders',OrderController::class);
     Route::apiResource('order_details',OrderDetailController::class);
     Route::put('/orders/{order_id}/orderdetails/{orderDetail}', [OrderDetailController::class, 'update']);
 
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/designs', [DesignController::class, 'index']);
+    Route::post('/designs', [DesignController::class, 'store']);
+    Route::get('/designs/{id}', [DesignController::class, 'show']);
+    Route::put('/designs/{id}', [DesignController::class, 'update']);
+    Route::delete('/designs/{id}', [DesignController::class, 'destroy']);
 });
 
 //Route::apiResource('designs', DesignController::class);
