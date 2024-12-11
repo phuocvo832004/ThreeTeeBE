@@ -38,16 +38,25 @@ class NewPasswordController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
+                $user->tokens()->delete();
+
                 event(new PasswordReset($user));
             }
         );
 
         if ($status != Password::PASSWORD_RESET) {
+            if ($status == Password::INVALID_TOKEN) {
+                throw ValidationException::withMessages([
+                    'token' => ['Mã token không hợp lệ hoặc đã hết hạn.'],
+                ]);
+            }
+
             throw ValidationException::withMessages([
-                'email' => [__($status)],
+                'email' => ['Có lỗi xảy ra. Vui lòng kiểm tra lại thông tin.'],
             ]);
         }
 
-        return response()->json(['status' => __($status)]);
+
+        return response()->json(['status' => 'Mật khẩu đã được cập nhật thành công!']);
     }
 }

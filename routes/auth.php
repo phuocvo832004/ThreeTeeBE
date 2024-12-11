@@ -31,48 +31,42 @@ Route::post('/reset-password', [NewPasswordController::class, 'store'])
 //     ->name('verification.verify');
     
 
-Route::get('/verify-email', function (Request $request) {
-    // Kiểm tra chữ ký của URL
-    if (!$request->hasValidSignature()) {
-        return response()->json(['message' => 'Invalid or expired verification link'], 400);
-    }
-
-    // Lấy ID và hash từ query string
-    $userId = $request->query('id');
+Route::get('verify-email', function (Request $request) {
+    $id = $request->query('id');
     $hash = $request->query('hash');
+    $expires = $request->query('expires');
 
-    if (!$userId || !$hash) {
+    if (!$id || !$hash || !$expires) {
         return response()->json(['message' => 'Invalid verification link'], 400);
     }
 
-    // Tìm user dựa trên ID
-    $user = User::find($userId);
+    if (now()->timestamp > $expires) {
+        return response()->json(['message' => 'Verification link expired'], 400);
+    }
 
+    $user = User::find($id);
     if (!$user) {
         return response()->json(['message' => 'User not found'], 404);
     }
 
-    // Xác minh hash
     $expectedHash = sha1($user->getEmailForVerification());
-    if ($hash !== $expectedHash) {
+    if (!hash_equals($expectedHash, $hash)) {
         return response()->json(['message' => 'Invalid verification link'], 400);
     }
 
-    // Kiểm tra nếu email đã được xác minh
     if ($user->hasVerifiedEmail()) {
-        return response()->json(['message' => 'Email is already verified']);
+        return response()->json(['message' => 'Email is already verified'], 200);
     }
 
-    // Đánh dấu email đã xác thực
     $user->markEmailAsVerified();
-
-    return response()->json(['message' => 'Email verified successfully']);
-})->middleware('signed')->name('verification.verify');
+    return response()->json(['message' => 'Email verified successfully'], 200);
+})->name('verification.verify');
 
 
 Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
-    ->middleware(['auth:sanctum', 'throttle:6,1'])
+    ->middleware(['guest', 'throttle:6,1']) 
     ->name('verification.send');
+
 
 Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth:sanctum')

@@ -12,9 +12,11 @@ use App\Http\Controllers\DesignController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\OrderDetailController;
-
+use App\Http\Controllers\UserController;
 
 require __DIR__.'/auth.php';
+Route::middleware('auth:sanctum')->patch('/update-password', [UserController::class, 'updatePassword']);
+
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
