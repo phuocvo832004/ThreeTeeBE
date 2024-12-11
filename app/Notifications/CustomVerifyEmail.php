@@ -23,10 +23,16 @@ class CustomVerifyEmail extends BaseVerifyEmail
 
     public function toMail($notifiable)
     {
-        $url = $this->verificationUrl($notifiable);
-
+        $frontendUrl = config('app.frontend_url');
+    
+        $url = $frontendUrl . "/verify-email?id=" . $notifiable->getKey() . "&hash=" . sha1($notifiable->getEmailForVerification());
+    
         return (new \Illuminate\Notifications\Messages\MailMessage)
-            ->view('emails.verify_email', ['notifiable' => $notifiable, 'url' => $url])
+            ->view('emails.verify_email', [
+                'notifiable' => $notifiable,
+                'url' => $url,
+            ])
             ->subject('Xác minh email của bạn tại ThreeTee');
     }
+    
 }

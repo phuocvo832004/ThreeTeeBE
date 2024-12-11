@@ -122,5 +122,18 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    // Các cấu hình khác...
 
+    /*
+    |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | This value is the URL of your frontend application. It can be used to 
+    | generate URLs for email verification or other interactions between
+    | the frontend and backend applications.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost'),
 ];
