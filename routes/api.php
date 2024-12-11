@@ -36,15 +36,16 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/designs', [DesignController::class, 'index']);
-    Route::post('/designs', [DesignController::class, 'store']);
-    Route::get('/designs/{id}', [DesignController::class, 'show']);
-    Route::put('/designs/{id}', [DesignController::class, 'update']);
-    Route::delete('/designs/{id}', [DesignController::class, 'destroy']);
-});
+// Route::middleware('auth:sanctum')->group(function () {
 
-//Route::apiResource('designs', DesignController::class);
+// });
+
+Route::get('/designs', [DesignController::class, 'index']);
+Route::post('/designs', [DesignController::class, 'store']);
+Route::get('/designs/{id}', [DesignController::class, 'show']);
+Route::put('/designs/{id}', [DesignController::class, 'update']);
+Route::delete('/designs/{id}', [DesignController::class, 'destroy']);
+Route::post('/upload-test', [DesignController::class, 'uploadTest']);
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();

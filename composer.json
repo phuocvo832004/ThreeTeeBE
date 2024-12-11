@@ -8,9 +8,11 @@
     "require": {
         "php": "^8.2",
         "cloudinary/cloudinary_php": "^2.14",
+        "google/cloud-storage": "^1.44",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "league/flysystem-google-cloud-storage": "^3.28",
         "spatie/laravel-query-builder": "^6.2"
     },
     "require-dev": {
@@ -29,7 +31,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "exclude-from-classmap": [
+            "vendor/fly-apps/dockerfile-laravel/app/Providers/AppServiceProvider.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

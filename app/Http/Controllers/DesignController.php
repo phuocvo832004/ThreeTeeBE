@@ -1,19 +1,18 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Http;
 
 use App\Models\Design;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DesignResource;
 use App\Http\Resources\DesignCollection;
+use Google\Cloud\Storage\StorageClient;
 
 class DesignController extends Controller
 {
-    /**
-     * Danh sách thiết kế
-     */
+
     public function index()
     {
         if (Auth::check() && Auth::user()->isAdmin()) {
@@ -26,7 +25,7 @@ class DesignController extends Controller
     }
 
     /**
-     * Tải file lên GitHub và lưu thông tin vào cơ sở dữ liệu
+     * Tải file lên Google Cloud Storage và lưu thông tin vào cơ sở dữ liệu
      */
     public function store(Request $request)
     {
@@ -38,18 +37,19 @@ class DesignController extends Controller
 
         $file = $request->file('file');
 
-        // Tải file lên GitHub bằng API
-        $githubResponse = $this->uploadToGitHub($file);
-        if (!$githubResponse['success']) {
-            return response()->json(['message' => 'Failed to upload file to GitHub', 'error' => $githubResponse['error']], 500);
+        // Tải file lên Google Cloud Storage
+        $uploadResult = $this->uploadToGoogleCloud($file);
+        if (!$uploadResult['success']) {
+            return response()->json(['message' => 'Failed to upload file to Google Cloud Storage', 'error' => $uploadResult['error']], 500);
         }
 
-        $publicUrl = $githubResponse['url']; // URL công khai của file trên jsDelivr
+        $publicUrl = $uploadResult['url']; // URL công khai của file
 
+        // Lưu thông tin thiết kế vào cơ sở dữ liệu
         $design = Design::create([
             'product_id' => $validated['product_id'],
             'user_id' => Auth::id(),
-            'file_path' => $publicUrl, // Lưu URL công khai vào cơ sở dữ liệu
+            'file_path' => $publicUrl,
             'description' => $validated['description'] ?? null,
         ]);
 
@@ -76,7 +76,40 @@ class DesignController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Logic cập nhật tương tự như trước nhưng không lưu file cục bộ
+        $design = Design::find($id);
+
+        if (!$design) {
+            return response()->json(['message' => 'Design not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'product_id' => 'integer',
+            'file' => 'file|max:20480', // 20MB giới hạn file tải lên
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        // Nếu có file mới, tải lên Google Cloud Storage
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+
+            // Xóa file cũ khỏi Google Cloud Storage
+            Storage::disk('gcs')->delete(parse_url($design->file_path, PHP_URL_PATH));
+
+            $uploadResult = $this->uploadToGoogleCloud($file);
+            if (!$uploadResult['success']) {
+                return response()->json(['message' => 'Failed to upload file to Google Cloud Storage', 'error' => $uploadResult['error']], 500);
+            }
+
+            $design->file_path = $uploadResult['url'];
+        }
+
+        $design->update([
+            'product_id' => $validated['product_id'] ?? $design->product_id,
+            'description' => $validated['description'] ?? $design->description,
+        ]);
+
+        return (new DesignResource($design))
+            ->additional(['message' => 'Design updated successfully']);
     }
 
     /**
@@ -90,41 +123,60 @@ class DesignController extends Controller
             return response()->json(['message' => 'Design not found'], 404);
         }
 
-        // GitHub không hỗ trợ xóa file qua URL công khai
+        // Xóa file khỏi Google Cloud Storage
+        Storage::disk('gcs')->delete(parse_url($design->file_path, PHP_URL_PATH));
+
         $design->delete();
 
         return response()->json(['message' => 'Design deleted successfully']);
     }
 
     /**
-     * Hàm tải file lên GitHub thông qua API
+     * Hàm tải file lên Google Cloud Storage
      */
-    private function uploadToGitHub($file)
-    {
-        $githubUsername = 'phuocvo832004';
-        $repositoryName = 'glb-repo';
-        $branch = 'main'; // Hoặc branch bạn đang sử dụng
-        $accessToken = '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'; // Token cá nhân GitHub
-
+    private function uploadToGoogleCloud($file)
+{
+    try {
+        // Lấy tên file gốc
         $fileName = $file->getClientOriginalName();
-        $fileContent = base64_encode(file_get_contents($file->getPathname()));
-
-        $url = "https://api.github.com/repos/{$githubUsername}/{$repositoryName}/contents/uploads/{$fileName}";
-        $payload = [
-            'message' => "Upload file {$fileName}",
-            'content' => $fileContent,
-            'branch' => $branch,
-        ];
-
-        $response = Http::withToken($accessToken)
-            ->withHeaders(['Accept' => 'application/vnd.github.v3+json'])
-            ->put($url, $payload);
-
-        if ($response->failed()) {
-            return ['success' => false, 'error' => $response->json()];
+        
+        // Khởi tạo đối tượng StorageClient của Google Cloud
+        $storageClient = new StorageClient([
+            'projectId' => env('GOOGLE_CLOUD_PROJECT_ID'),
+            'keyFilePath' => storage_path('app/neon-research-441708-j6-eeca532c4182.json'),
+        ]);
+        
+        // Kiểm tra xem bucket có tồn tại không
+        $bucket = $storageClient->bucket(env('GOOGLE_CLOUD_STORAGE_BUCKET'));
+        if (!$bucket->exists()) {
+            throw new \Exception("Bucket not found: " . env('GOOGLE_CLOUD_STORAGE_BUCKET'));
         }
 
-        $jsDelivrUrl = "https://cdn.jsdelivr.net/gh/{$githubUsername}/{$repositoryName}@{$branch}/uploads/{$fileName}";
-        return ['success' => true, 'url' => $jsDelivrUrl];
+        // Đưa file lên Google Cloud Storage
+        $object = $bucket->upload(
+            fopen($file->getRealPath(), 'r'), // Đọc file từ đường dẫn
+            [
+                'name' => 'uploads/' . $fileName, // Tên file lưu trong bucket
+            ]
+        );
+
+        // Lấy URL công khai của file
+        $publicUrl = $object->signedUrl(new \DateTime('1 hour')); // Link hợp lệ trong 1 giờ
+
+        return [
+            'success' => true,
+            'url' => $publicUrl,
+        ];
+    } catch (\Exception $e) {
+        return [
+            'success' => false,
+            'error' => $e->getMessage(),
+        ];
     }
+}
+
+
+
+
+
 }
