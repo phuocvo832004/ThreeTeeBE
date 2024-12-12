@@ -55,10 +55,13 @@ class OrderController extends Controller
     }
 
     // Hiển thị chi tiết sản phẩm
-    public function show(Request $request, Order $Order)
+    public function show(Request $request, Order $order)
     {
-        return new OrderResource($Order);
-    }
+        if ($order->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            return response()->json(['message' => 'You are not authorized to view this order.'], 403);
+        }
+    
+        return new OrderResource($order);    }
 
     // Thêm mới sản phẩm
     public function store(StoreOrderRequest $request)
