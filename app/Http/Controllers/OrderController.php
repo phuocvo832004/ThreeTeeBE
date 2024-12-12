@@ -55,21 +55,41 @@ class OrderController extends Controller
     
     public function paymentReturn(Order $order)
     {
+        if ($order->payment_status === 'paid') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment was successful',
+                'order_id' => $order->id,
+            ]);
+        }
+    
+        $order->update([
+            'payment_status' => 'unpaid', 
+            'payment_date' => now(), 
+        ]);
+    
         return response()->json([
-            'success' => true,
-            'message' => 'Payment was successful',
+            'success' => false,
+            'message' => 'Payment was not successful',
             'order_id' => $order->id,
         ]);
     }
+      
 
     public function paymentCancel(Order $order)
     {
+        $order->update([
+            'payment_status' => 'cancelled',
+            'payment_date' => now(),
+        ]);
+    
         return response()->json([
             'success' => false,
-            'message' => 'Payment was canceled',
+            'message' => 'Payment was cancelled',
             'order_id' => $order->id,
         ]);
     }
+    
 
     public function getPaymentInfo(Order $order)
     {
@@ -134,8 +154,6 @@ class OrderController extends Controller
             ], 500);
         }
     }
-    
-        
 
     public function cancelPaymentLink(Request $request, Order $order)
     {
