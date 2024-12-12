@@ -19,7 +19,9 @@ class Order extends Model
         'address',
         'totalprice',
         'status',
-        'payment_status'
+        'payment_status',
+        'payment_link',
+        'payment_link_id',
     ];
 
     protected $hidden = [
@@ -47,4 +49,20 @@ class Order extends Model
     {
         return $this->hasMany(OrderDetail::class, 'order_id');
     }
+
+    public function isPaid(): bool
+    {
+        return $this->payment_status === 'success';
+    }
+
+    public function getPaymentStatusTextAttribute(): string
+    {
+        return match ($this->payment_status) {
+            'success' => 'Thanh toán thành công',
+            'failed' => 'Thanh toán thất bại',
+            'pending' => 'Chờ thanh toán',
+            default => 'Không xác định',
+        };
+    }
+
 }

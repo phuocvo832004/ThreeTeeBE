@@ -12,10 +12,120 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Spatie\QueryBuilder\AllowedFilter;
+use PayOS\PayOS;
 
 class OrderController extends Controller
 {
-    // Hiển thị danh sách sản phẩm
+
+    protected PayOS $payOS;
+
+
+    public function createPaymentLink(Request $request, Order $order)
+    {
+        try {
+            $body = [
+                'orderCode' => $order->id, // Thêm mã đơn hàng
+                'amount' => $order->totalprice,
+                'currency' => 'VND',
+                'description' => "Payment for Order #" . $order->id,
+                'callback_url' => route('orders.payment.callback', ['order' => $order->id]),
+                'returnUrl' => route('orders.payment.return', ['order' => $order->id]), // Thêm returnUrl
+                'cancelUrl' => route('orders.payment.cancel', ['order' => $order->id]), // Thêm cancelUrl
+            ];
+
+            $response = $this->payOS->createPaymentLink($body);
+
+            if (isset($response['checkoutUrl'])) {
+                $order->update(['payment_link' => $response['checkoutUrl']]); // Lưu link thanh toán vào DB nếu cần
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment link created successfully',
+                'payment_link' => $response['checkoutUrl'],
+            ]);
+        } catch (\Throwable $th) {
+            return $this->handleException($th);
+        }
+    }
+    public function paymentReturn(Order $order)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment was successful',
+            'order_id' => $order->id,
+        ]);
+    }
+
+    public function paymentCancel(Order $order)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Payment was canceled',
+            'order_id' => $order->id,
+        ]);
+    }
+
+    public function getPaymentInfo(Order $order)
+    {
+        try {
+            $response = $this->payOS->getPaymentLinkInformation($order->payment_link_id); 
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment info retrieved successfully',
+                'data' => $response,
+            ]);
+        } catch (\Throwable $th) {
+            return $this->handleException($th);
+        }
+    }
+
+    public function handlePaymentCallback(Request $request)
+    {
+        $data = $request->all();
+    
+        $order = Order::where('payment_link_id', $data['paymentLinkId'])->first(); 
+    
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Order not found'], 404);
+        }
+    
+        $order->update([
+            'payment_status' => $data['status'], 
+            'payment_date' => now(),
+        ]);
+    
+        return response()->json(['success' => true, 'message' => 'Callback processed successfully']);
+    }
+    
+
+    public function cancelPaymentLink(Request $request, Order $order)
+    {
+        try {
+            $body = $request->input('cancellationReason') ? ['cancellationReason' => $request->input('cancellationReason')] : null;
+
+            $response = $this->payOS->cancelPaymentLink($order->payment_link_id, $body); 
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment link canceled successfully',
+                'data' => $response,
+            ]);
+        } catch (\Throwable $th) {
+            return $this->handleException($th);
+        }
+    }
+
+    protected function handleException(\Throwable $th)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => $th->getMessage(),
+        ], 500);
+    }
+
+
     public function index(Request $request)
     {
         $order = QueryBuilder::for(Order::class)
@@ -55,13 +165,11 @@ class OrderController extends Controller
         return new OrderCollection($order);
     }
 
-    // Hiển thị chi tiết sản phẩm
     public function show(Request $request, Order $Order)
     {
         return new OrderResource($Order);
     }
 
-    // Thêm mới sản phẩm
     public function store(StoreOrderRequest $request)
     {
         $validated = $request->validated();
@@ -71,7 +179,6 @@ class OrderController extends Controller
         return new OrderResource($order);
     }
 
-    // Cập nhật thông tin sản phẩm
     public function update(UpdateOrderRequest $request, Order $Order)
     {
         $validated = $request->validated();
@@ -81,7 +188,6 @@ class OrderController extends Controller
         return new OrderResource($Order);
     }
 
-    // Xóa sản phẩm
     public function destroy(Request $request, Order $Order)
     {
         $Order->delete();

@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "league/flysystem-google-cloud-storage": "^3.28",
+        "payos/payos": "^1.0",
         "spatie/laravel-query-builder": "^6.2"
     },
     "require-dev": {
