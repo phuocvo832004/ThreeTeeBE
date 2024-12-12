@@ -10,6 +10,7 @@ use App\Models\Order;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class OrderController extends Controller
 {
@@ -17,9 +18,38 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $order = QueryBuilder::for(Order::class)
-                    ->allowedFilters('status','totalprice','payment_status')
+                    ->allowedFilters([
+                        'status',
+                        'totalprice', 
+                        'payment_status',
+                        AllowedFilter::callback('order_date_year', function ($query, $value) {
+                            $query->whereYear('order_date', $value);
+                        }),
+                        AllowedFilter::callback('order_date_month', function ($query, $value) {
+                            $query->whereMonth('order_date', $value);
+                        }),
+                        AllowedFilter::callback('order_date_day', function ($query, $value) {
+                            $query->whereDay('order_date', $value);
+                        }),
+                        AllowedFilter::callback('order_date_range', function ($query, $value) {
+                            if (is_array($value)) {
+                                $startDate = $value[0] ?? null;
+                                $endDate = $value[1] ?? null;
+                            } elseif (is_string($value)) {
+                                $dates = explode(',', $value);
+                                $startDate = $dates[0] ?? null;
+                                $endDate = $dates[1] ?? null;
+                            } else {
+                                return;
+                            }
+                
+                            if ($startDate && $endDate) {
+                                $query->whereBetween('order_date', [$startDate, $endDate]);
+                            }
+                        })
+                    ])                    
                     ->defaultSort('status')
-                    ->allowedSorts('status','totalprice','payment_status','payment_date')
+                    ->allowedSorts('status','totalprice','payment_status','payment_date','order_date')
                     ->paginate();
         return new OrderCollection($order);
     }
