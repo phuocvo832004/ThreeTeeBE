@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GetAllOrderRequest;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Resources\OrderCollection;
@@ -86,5 +87,18 @@ class OrderController extends Controller
         $Order->delete();
 
         return response()->noContent();
+    }
+
+    public function getAllOrders(GetAllOrderRequest $request)
+    {
+
+        $validated = $request->validated();
+
+        $orders = Order::with('orderDetails')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $orders,
+        ]);
     }
 }

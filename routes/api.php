@@ -34,7 +34,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('order_details',OrderDetailController::class);
     Route::put('/orders/{order_id}/orderdetails/{orderDetail}', [OrderDetailController::class, 'update']);
     Route::get('/order/{order_id}/details', [OrderDetailController::class, 'index']);
-
+    Route::get('/admin/orders/all', [OrderController::class, 'getAllOrders']);
 
 });
 
