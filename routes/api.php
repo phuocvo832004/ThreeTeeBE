@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DesignController;
@@ -30,17 +31,16 @@ Route::middleware('auth:sanctum')->patch('/update-password', [UserController::cl
 
 
 Route::middleware(['auth:sanctum'])->group(function() {
-    // Resource routes cho orders và order_details
     Route::apiResource('orders', OrderController::class);
     Route::apiResource('order_details', OrderDetailController::class);
 
-    // API quản lý chi tiết order
     Route::put('/orders/{order_id}/orderdetails/{orderDetail}', [OrderDetailController::class, 'update']);
     Route::get('/order/{order_id}/details', [OrderDetailController::class, 'index']);
 
-    // API lấy tất cả các orders (dành cho admin)
     Route::get('/admin/orders/all', [OrderController::class, 'getAllOrders']);
 
+    // Route::post('/carts',[CartController::class,'store']);
+    // Route::get('/carts',[CartController::class,'index']);
     // API liên quan đến thanh toán
     Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']); // Tạo link thanh toán
     Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);   // Lấy thông tin thanh toán
