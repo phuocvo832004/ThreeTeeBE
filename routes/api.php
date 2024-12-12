@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/designs/{id}', [DesignController::class, 'destroy']);
 });
 
-//Route::apiResource('designs', DesignController::class);
+
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();

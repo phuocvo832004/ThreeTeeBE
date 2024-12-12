@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->string('file_path'); 
+            $table->string('file_path',5000); 
             $table->text('description')->nullable();
             $table->timestamps();
         });

@@ -14,7 +14,7 @@ class Design extends Model
     protected $fillable = [
         'user_id',
         'product_id',
-        'file_path', // URL công khai từ GitHub hoặc jsDelivr
+        'file_path', 
         'description',
     ];
 
@@ -44,5 +44,10 @@ class Design extends Model
                 $builder->where('user_id', Auth::id());
             }
         });
+    }
+
+    public function getFileUrlAttribute()
+    {
+        return Storage::disk('gcs')->url($this->file_path);
     }
 }

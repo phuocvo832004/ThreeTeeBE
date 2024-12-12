@@ -8,6 +8,11 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Storage;
+use Google\Cloud\Storage\StorageClient;
+use League\Flysystem\GoogleCloudStorage\GoogleCloudStorageAdapter;
+use League\Flysystem\Filesystem;
+use Illuminate\Filesystem\FilesystemAdapter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,6 +38,19 @@ class AppServiceProvider extends ServiceProvider
             $url = config('app.frontend_url') . "/verify-email?id=" . $notifiable->getKey() . "&hash=" . $hash;
         
             return $url;
+        });
+
+        Storage::extend('gcs', function ($app, $config) {
+            $storageClient = new StorageClient([
+                'projectId' => $config['project_id'],
+                'keyFilePath' => $config['key_file'],
+            ]);
+        
+            $bucket = $storageClient->bucket($config['bucket']);
+            $adapter = new GoogleCloudStorageAdapter($bucket);
+            $filesystem = new Filesystem($adapter);
+        
+            return new FilesystemAdapter($filesystem, $adapter, $config);
         });
     }
 }
