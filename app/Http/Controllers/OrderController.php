@@ -32,13 +32,17 @@ class OrderController extends Controller
                 'returnUrl' => route('orders.payment.return', ['order' => $order->id]), // Thêm returnUrl
                 'cancelUrl' => route('orders.payment.cancel', ['order' => $order->id]), // Thêm cancelUrl
             ];
-
+    
             $response = $this->payOS->createPaymentLink($body);
-
+    
             if (isset($response['checkoutUrl'])) {
-                $order->update(['payment_link' => $response['checkoutUrl']]); // Lưu link thanh toán vào DB nếu cần
+                // Lưu thông tin payment link và payment_link_id vào cơ sở dữ liệu
+                $order->update([
+                    'payment_link' => $response['checkoutUrl'],
+                    'payment_link_id' => $response['orderCode'], // Cập nhật payment_link_id từ PayOS response
+                ]);
             }
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Payment link created successfully',
@@ -48,6 +52,7 @@ class OrderController extends Controller
             return $this->handleException($th);
         }
     }
+    
     public function paymentReturn(Order $order)
     {
         return response()->json([
@@ -69,8 +74,17 @@ class OrderController extends Controller
     public function getPaymentInfo(Order $order)
     {
         try {
-            $response = $this->payOS->getPaymentLinkInformation($order->payment_link_id); 
-
+            // Kiểm tra xem payment_link_id có tồn tại không
+            if (!$order->payment_link_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment link ID is missing',
+                ], 400);
+            }
+    
+            // Gọi PayOS API để lấy thông tin liên kết thanh toán
+            $response = $this->payOS->getPaymentLinkInformation($order->payment_link_id);
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Payment info retrieved successfully',
@@ -80,25 +94,48 @@ class OrderController extends Controller
             return $this->handleException($th);
         }
     }
+    
 
     public function handlePaymentCallback(Request $request)
     {
-        $data = $request->all();
+        try {
+            $data = $request->all();
+            
+            // Kiểm tra xem dữ liệu có đầy đủ không
+            if (!isset($data['paymentLinkId']) || !isset($data['status'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Missing paymentLinkId or status in the callback data'
+                ], 400);
+            }
     
-        $order = Order::where('payment_link_id', $data['paymentLinkId'])->first(); 
+            // Tìm đơn hàng dựa trên paymentLinkId
+            $order = Order::where('payment_link_id', $data['paymentLinkId'])->first();
     
-        if (!$order) {
-            return response()->json(['success' => false, 'message' => 'Order not found'], 404);
+            if (!$order) {
+                return response()->json(['success' => false, 'message' => 'Order not found'], 404);
+            }
+    
+            // Cập nhật trạng thái thanh toán của đơn hàng
+            $order->update([
+                'payment_status' => $data['status'], // Trạng thái thanh toán, ví dụ: "success", "failed"
+                'payment_date' => now(), // Cập nhật thời gian thanh toán
+            ]);
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Callback processed successfully',
+            ]);
+        } catch (\Throwable $th) {
+            // Catch mọi lỗi để kiểm tra lỗi cụ thể
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $th->getMessage()
+            ], 500);
         }
-    
-        $order->update([
-            'payment_status' => $data['status'], 
-            'payment_date' => now(),
-        ]);
-    
-        return response()->json(['success' => true, 'message' => 'Callback processed successfully']);
     }
     
+        
 
     public function cancelPaymentLink(Request $request, Order $order)
     {
