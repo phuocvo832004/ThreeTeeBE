@@ -29,33 +29,39 @@ class DesignController extends Controller
      */
     public function store(Request $request)
     {
+        // Check if the user is authenticated
+        if (!Auth::check()) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+    
         $validated = $request->validate([
             'product_id' => 'required|integer',
-            'file' => 'required|file|max:20480', // 20MB giới hạn file tải lên
-            'description' => 'nullable|string|max:255',
+            'file' => 'required|file|max:20480', // 20MB limit
+            'description' => 'nullable|string|max:25555',
         ]);
-
+    
         $file = $request->file('file');
-
-        // Tải file lên Google Cloud Storage
+    
+        // Upload file to Google Cloud Storage
         $uploadResult = $this->uploadToGoogleCloud($file);
         if (!$uploadResult['success']) {
             return response()->json(['message' => 'Failed to upload file to Google Cloud Storage', 'error' => $uploadResult['error']], 500);
         }
-
-        $publicUrl = $uploadResult['url']; // URL công khai của file
-
-        // Lưu thông tin thiết kế vào cơ sở dữ liệu
+    
+        $publicUrl = $uploadResult['url'];
+    
+        // Save design information to the database
         $design = Design::create([
             'product_id' => $validated['product_id'],
-            'user_id' => Auth::id(),
+            'user_id' => Auth::id(), 
             'file_path' => $publicUrl,
             'description' => $validated['description'] ?? null,
         ]);
-
+    
         return (new DesignResource($design))
             ->additional(['message' => 'File uploaded successfully']);
     }
+    
 
     /**
      * Hiển thị thông tin thiết kế
