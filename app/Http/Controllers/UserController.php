@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class UserController extends Controller
 {
@@ -32,5 +35,25 @@ class UserController extends Controller
         ]);
     }
     
-
+    public function getAllUsers(Request $request)
+    {
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+    
+        $users = QueryBuilder::for(User::class)
+                    ->allowedFilters([
+                        AllowedFilter::partial('name'),
+                        AllowedFilter::partial('email')
+                    ])
+                    ->defaultSort('created_at')
+                    ->paginate();
+    
+        return response()->json([
+            'users' => $users
+        ]);
+    }
+    
 }

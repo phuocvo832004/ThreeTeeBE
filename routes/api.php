@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DesignController;
@@ -35,7 +36,13 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::put('/orders/{order_id}/orderdetails/{orderDetail}', [OrderDetailController::class, 'update']);
     Route::get('/order/{order_id}/details', [OrderDetailController::class, 'index']);
     Route::get('/admin/orders/all', [OrderController::class, 'getAllOrders']);
+    Route::get('/admin/getallusers',[UserController::class,'getAllUsers']);
+    Route::apiResource('carts',CartController::class);
+    Route::get('/carts_5',[CartController::class,'index5']);
 
+
+    // Route::post('/carts',[CartController::class,'store']);
+    // Route::get('/carts',[CartController::class,'index']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {

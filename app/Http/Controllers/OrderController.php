@@ -94,7 +94,40 @@ class OrderController extends Controller
 
         $validated = $request->validated();
 
-        $orders = Order::with('orderDetails')->get();
+        $orders = QueryBuilder::for(Order::with('orderDetails'))
+        ->allowedFilters([
+            'status',
+            'totalprice',
+            'payment_status',
+            AllowedFilter::callback('order_date_year', function ($query, $value) {
+                $query->whereYear('order_date', $value);
+            }),
+            AllowedFilter::callback('order_date_month', function ($query, $value) {
+                $query->whereMonth('order_date', $value);
+            }),
+            AllowedFilter::callback('order_date_day', function ($query, $value) {
+                $query->whereDay('order_date', $value);
+            }),
+            AllowedFilter::callback('order_date_range', function ($query, $value) {
+                if (is_array($value)) {
+                    $startDate = $value[0] ?? null;
+                    $endDate = $value[1] ?? null;
+                } elseif (is_string($value)) {
+                    $dates = explode(',', $value);
+                    $startDate = $dates[0] ?? null;
+                    $endDate = $dates[1] ?? null;
+                } else {
+                    return;
+                }
+
+                if ($startDate && $endDate) {
+                    $query->whereBetween('order_date', [$startDate, $endDate]);
+                }
+            })
+        ])
+        ->defaultSort('status') // Sắp xếp mặc định
+        ->allowedSorts('status', 'totalprice', 'payment_status', 'payment_date', 'order_date') // Các trường được phép sắp xếp
+        ->paginate(); 
 
         return response()->json([
             'success' => true,
