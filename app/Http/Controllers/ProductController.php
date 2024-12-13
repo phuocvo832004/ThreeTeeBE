@@ -6,8 +6,10 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Support\Facades\Auth;
+use Spatie\QueryBuilder\AllowedFilter;
 
 class ProductController extends Controller
 {
@@ -15,7 +17,7 @@ class ProductController extends Controller
     {
 
         $products = QueryBuilder::for(Product::class)
-        ->allowedFilters('name' )
+        ->allowedFilters( [AllowedFilter::partial('name')])
         ->defaultSort('-create')
         ->allowedSorts('price', 'rate')
         ->paginate();
@@ -23,6 +25,29 @@ class ProductController extends Controller
         return new ProductCollection($products);
     }
 
+    public function indexUnique()
+    {
+        $products = QueryBuilder::for(Product::class)
+        ->allowedFilters([AllowedFilter::partial('name')])
+        ->defaultSort('-create')
+        ->allowedSorts('price', 'rate')
+        ->get() 
+        ->unique('name')
+        ->values();
+
+    
+        $perPage = 10; 
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $paginatedProducts = new LengthAwarePaginator(
+            $products->forPage($currentPage, $perPage),
+            $products->count(),
+            $perPage,
+            $currentPage,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        return new ProductCollection($paginatedProducts);
+    }
     public function store(Request $request)
     {
         if (!Auth::check()) {
