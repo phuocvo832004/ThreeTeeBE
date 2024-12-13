@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Image;
 use App\Models\User;
+use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -54,6 +57,49 @@ class UserController extends Controller
         return response()->json([
             'users' => $users
         ]);
+    }
+
+
+    public function updateUser(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255', 
+            'avatar' => 'sometimes|required|file|mimes:jpg,jpeg,png,gif|max:20480', 
+        ]);
+    
+        $user = auth()->user(); 
+    
+        $image = $request->file('avatar');
+        $imageUrl = $user->avatar; // Mặc định giữ nguyên avatar hiện tại
+    
+        if ($image) {
+            try {
+                $cloudinary = new Cloudinary();
+                $preset = 'unsigned'; 
+    
+                $upload = $cloudinary->uploadApi()->upload(
+                    $image->getRealPath(),
+                    [
+                        'upload_preset' => $preset,
+                    ]
+                );
+    
+                $imageUrl = $upload['secure_url'];
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Upload failed: ' . $e->getMessage()], 500);
+            }
+        }
+    
+        $user->update([
+            'name' => $request->input('name', $user->name), 
+            'avatar' => $imageUrl,
+        ]);
+    
+
+        return response()->json([
+            'message' => 'User updated successfully',
+            'user' => $user,
+        ], 200);
     }
     
 }

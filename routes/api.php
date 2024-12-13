@@ -17,6 +17,7 @@ use App\Http\Controllers\UserController;
 
 require __DIR__.'/auth.php';
 Route::middleware('auth:sanctum')->patch('/update-password', [UserController::class, 'updatePassword']);
+Route::middleware('auth:sanctum')->patch('/update-user', [UserController::class, 'updateUser']);
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
