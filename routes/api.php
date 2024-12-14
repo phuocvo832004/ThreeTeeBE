@@ -43,18 +43,13 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     Route::get('/admin/orders/all', [OrderController::class, 'getAllOrders']);
 
-    // Route::post('/carts',[CartController::class,'store']);
-    // Route::get('/carts',[CartController::class,'index']);
-    // API liên quan đến thanh toán
-    Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']); // Tạo link thanh toán
-    Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);   // Lấy thông tin thanh toán
-    Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback'); // Xử lý callback thanh toán
-    Route::post('/orders/{order}/cancel-payment-link', [OrderController::class, 'cancelPaymentLink']); // Hủy link thanh toán
-    Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return'); // Xử lý trả lại thanh toán
-    Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel'); // Xử lý hủy thanh toán
+    Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']); 
+    Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);   
+    Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback'); 
+    Route::post('/orders/{order}/cancel-payment-link', [OrderController::class, 'cancelPaymentLink']);
+    Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return'); 
+    Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel');
     
-
-
 });
 
 
@@ -82,17 +77,17 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::delete('products/{id}', [ProductController::class, 'destroy']); 
 
     Route::prefix('product-details')->group(function () {
-        Route::get('/', [ProductDetailController::class, 'index']); // Lấy danh sách tất cả ProductDetail
-        Route::post('/', [ProductDetailController::class, 'store']); // Tạo mới ProductDetail
-        Route::get('/{id}', [ProductDetailController::class, 'show']); // Xem chi tiết ProductDetail
-        Route::put('/{id}', [ProductDetailController::class, 'update']); // Cập nhật ProductDetail
-        Route::delete('/{id}', [ProductDetailController::class, 'destroy']); // Xóa ProductDetail
+        Route::get('/', [ProductDetailController::class, 'index']); 
+        Route::post('/', [ProductDetailController::class, 'store']); 
+        Route::get('/{id}', [ProductDetailController::class, 'show']); 
+        Route::put('/{id}', [ProductDetailController::class, 'update']); 
+        Route::delete('/{id}', [ProductDetailController::class, 'destroy']);
     });
 });
 
 
 Route::middleware(['auth:sanctum'])->group(function(){
-    Route::apiResource('reviews', ImageController::class);
+    Route::apiResource('reviews', ReviewController::class);
 });
 
 Route::middleware(['auth:sanctum'])->group(function(){
