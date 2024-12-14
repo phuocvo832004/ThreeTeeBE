@@ -23,8 +23,8 @@ class StoreOrderDetailRequest extends FormRequest
     {
         return [
             'order_id' => 'required|exists:orders,id',
-            'product_id' => 'required|exists:products,id',
             'amount' => 'required|integer|min:1',
+            'product_detail_id' => 'required|exists:product_details,id',
         ];
     }
 }

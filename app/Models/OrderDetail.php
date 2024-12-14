@@ -14,8 +14,8 @@ class OrderDetail extends Model
 
     protected $fillable = [
         'order_id',
-        'product_id',
         'amount',
+        'product_detail_id',
     ];
 
     /**
@@ -48,4 +48,10 @@ class OrderDetail extends Model
             }
         });
     }
+
+    public function productDetail()
+    {
+        return $this->belongsTo(ProductDetail::class, 'product_detail_id', 'id');
+    }
+
 }
