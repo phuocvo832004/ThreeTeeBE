@@ -12,6 +12,18 @@ use Google\Cloud\Storage\StorageClient;
 
 class ImageController extends Controller
 {
+
+    public function getImagesByProduct($productId)
+    {
+        $images = Image::where('product_id', $productId)->get();
+
+        if ($images->isEmpty()) {
+            return response()->json(['message' => 'No images found for this product'], 404);
+        }
+
+        return new ImageCollection($images);
+    }
+
     public function index()
     {
         $images = Image::with('product')->get();

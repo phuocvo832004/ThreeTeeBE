@@ -95,6 +95,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
 Route::middleware(['auth:sanctum'])->group(function(){
     Route::apiResource('images', ImageController::class);
+    Route::get('/products/{productId}/images', [ImageController::class, 'getImagesByProduct']);
 });
 
 
