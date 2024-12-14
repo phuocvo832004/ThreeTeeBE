@@ -84,9 +84,9 @@ Route::middleware(['auth:sanctum'])->group(function() {
     });
 });
 
-
+Route::get('reviews', ReviewController::class);
 Route::middleware(['auth:sanctum'])->group(function(){
-    Route::apiResource('reviews', ReviewController::class);
+    Route::post('reviews/{id}', [ReviewController::class, 'store']);
 });
 
 Route::middleware(['auth:sanctum'])->group(function(){
