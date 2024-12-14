@@ -19,6 +19,7 @@ class ProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'product_details' => ProductDetailResource::collection($this->whenLoaded('productDetails')),
+            'images' => ImageResource::collection($this->whenLoaded('images')),
         ];
     }
 }

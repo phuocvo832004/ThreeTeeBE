@@ -29,35 +29,39 @@ class ImageController extends Controller
         $images = Image::with('product')->get();
         return new ImageCollection($images);
     }
-
     public function store(Request $request)
     {
         $validated = $request->validate([
             'product_id' => 'required|integer',
-            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:20480', // Giới hạn 20MB
+            'images.*' => 'required|file|mimes:jpg,jpeg,png,gif|max:20480', // Danh sách file
         ]);
-
-        $imageFile = $request->file('image');
-
-        // Gọi hàm upload file lên Google Cloud Storage
-        $uploadResult = $this->uploadToGoogleCloud($imageFile);
-        if (!$uploadResult['success']) {
-            return response()->json(['message' => 'Failed to upload image', 'error' => $uploadResult['error']], 500);
+    
+        $uploadedImages = [];
+    
+        foreach ($request->file('images') as $imageFile) {
+            // Gọi hàm upload file lên Google Cloud Storage
+            $uploadResult = $this->uploadToGoogleCloud($imageFile);
+            if (!$uploadResult['success']) {
+                return response()->json(['message' => 'Failed to upload image', 'error' => $uploadResult['error']], 500);
+            }
+    
+            $publicUrl = $uploadResult['url'];
+    
+            // Lưu thông tin vào database
+            $image = Image::create([
+                'product_id' => $validated['product_id'],
+                'image_link' => $publicUrl,
+            ]);
+    
+            $uploadedImages[] = new ImageResource($image);
         }
-
-        $publicUrl = $uploadResult['url'];
-
-        // Lưu thông tin vào database
-        $image = Image::create([
-            'product_id' => $validated['product_id'],
-            'image_link' => $publicUrl,
-        ]);
-
+    
         return response()->json([
-            'message' => 'Image uploaded successfully',
-            'image' => new ImageResource($image),
+            'message' => 'Images uploaded successfully',
+            'images' => $uploadedImages,
         ], 200);
     }
+    
 
     public function show($id)
     {

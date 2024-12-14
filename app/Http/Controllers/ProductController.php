@@ -8,31 +8,27 @@ use Illuminate\Http\Request;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\ProductDetailResource;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
-use Illuminate\Support\Facades\Auth;
-use Spatie\QueryBuilder\AllowedSort;
 
 class ProductController extends Controller
 {
     public function index()
     {
         $products = QueryBuilder::for(Product::class)
-        ->allowedFilters([
-            AllowedFilter::partial('name'),
-            AllowedFilter::exact('size', 'productDetails.size'), // Thêm filter size
-        ])
-        ->defaultSort('-created_at')
-        ->allowedSorts('rate', 'sold')
-        ->with('productDetails') 
-        ->paginate();
-    
+            ->allowedFilters([
+                AllowedFilter::partial('name'),
+                AllowedFilter::exact('size', 'productDetails.size'), // Filter theo size
+            ])
+            ->defaultSort('-created_at')
+            ->allowedSorts('rate', 'sold')
+            ->with(['productDetails', 'images']) // Tích hợp productDetails và images
+            ->paginate();
+
         return new ProductCollection($products);
-    
     }
 
-    
     public function store(Request $request)
     {
         if (!Auth::check() || !Auth::user()->isAdmin()) {
@@ -62,7 +58,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with('productDetails')->find($id);
+        $product = Product::with(['productDetails', 'images'])->find($id); 
 
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
