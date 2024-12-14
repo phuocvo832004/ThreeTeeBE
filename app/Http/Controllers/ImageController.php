@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Image;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\ImageResource;
 use App\Http\Resources\ImageCollection;
-use Cloudinary\Cloudinary;
+use Google\Cloud\Storage\StorageClient;
 
 class ImageController extends Controller
 {
@@ -19,43 +21,31 @@ class ImageController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:20480',
+            'product_id' => 'required|integer',
+            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:20480', // Giới hạn 20MB
         ]);
-    
-        $image = $request->file('image');
-    
-        if (!$image) {
-            return response()->json(['message' => 'No image file uploaded'], 400);
+
+        $imageFile = $request->file('image');
+
+        // Gọi hàm upload file lên Google Cloud Storage
+        $uploadResult = $this->uploadToGoogleCloud($imageFile);
+        if (!$uploadResult['success']) {
+            return response()->json(['message' => 'Failed to upload image', 'error' => $uploadResult['error']], 500);
         }
-    
-        try {
-            $cloudinary = new Cloudinary();
-            $preset = 'unsigned'; 
-    
-            $upload = $cloudinary->uploadApi()->upload(
-                $image->getRealPath(),
-                [
-                    'upload_preset' => $preset,
-                ]
-            );
-    
-            $imageUrl = $upload['secure_url'];
-    
-            // Lưu thông tin hình ảnh vào cơ sở dữ liệu
-            $imageData = [
-                'image_link' => $imageUrl,
-                'product_id' => $request->product_id, // Nếu có product_id từ request
-            ];
-    
-            $image = Image::create($imageData);
-    
-            return response()->json(['image_url' => $imageUrl, 'image' => $image], 200);
-    
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Upload failed: ' . $e->getMessage()], 500);
-        }
+
+        $publicUrl = $uploadResult['url'];
+
+        // Lưu thông tin vào database
+        $image = Image::create([
+            'product_id' => $validated['product_id'],
+            'image_link' => $publicUrl,
+        ]);
+
+        return response()->json([
+            'message' => 'Image uploaded successfully',
+            'image' => new ImageResource($image),
+        ], 200);
     }
-    
 
     public function show($id)
     {
@@ -77,16 +67,24 @@ class ImageController extends Controller
         }
 
         $validated = $request->validate([
-            'product_id' => 'exists:products,id',
-            'file' => 'file|image|max:20480', 
+            'product_id' => 'integer',
+            'image' => 'file|mimes:jpg,jpeg,png,gif|max:20480',
         ]);
 
-        if ($request->hasFile('file')) {
-            $publicId = basename($image->image_link, '.' . pathinfo($image->image_link, PATHINFO_EXTENSION));
-            Cloudinary::destroy($publicId);
+        // Nếu có file mới, thay thế file cũ trên Google Cloud Storage
+        if ($request->hasFile('image')) {
+            $imageFile = $request->file('image');
 
-            $uploadedFileUrl = Cloudinary::upload($request->file('file')->getRealPath())->getSecurePath();
-            $image->image_link = $uploadedFileUrl;
+            // Xóa file cũ khỏi Google Cloud Storage
+            $this->deleteFromGoogleCloud($image->image_link);
+
+            // Upload file mới lên Google Cloud Storage
+            $uploadResult = $this->uploadToGoogleCloud($imageFile);
+            if (!$uploadResult['success']) {
+                return response()->json(['message' => 'Failed to upload new image', 'error' => $uploadResult['error']], 500);
+            }
+
+            $image->image_link = $uploadResult['url'];
         }
 
         if ($request->has('product_id')) {
@@ -95,7 +93,10 @@ class ImageController extends Controller
 
         $image->save();
 
-        return new ImageResource($image);
+        return response()->json([
+            'message' => 'Image updated successfully',
+            'image' => new ImageResource($image),
+        ], 200);
     }
 
     public function destroy($id)
@@ -106,11 +107,71 @@ class ImageController extends Controller
             return response()->json(['message' => 'Image not found'], 404);
         }
 
-        $publicId = basename($image->image_link, '.' . pathinfo($image->image_link, PATHINFO_EXTENSION));
-        Cloudinary::destroy($publicId);
+        // Xóa file khỏi Google Cloud Storage
+        $this->deleteFromGoogleCloud($image->image_link);
 
+        // Xóa record khỏi database
         $image->delete();
 
-        return response()->json(['message' => 'Image deleted successfully']);
+        return response()->json(['message' => 'Image deleted successfully'], 200);
+    }
+
+    /**
+     * Hàm tải file lên Google Cloud Storage
+     */
+    private function uploadToGoogleCloud($file)
+    {
+        try {
+            $fileName = 'images/' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+            $storageClient = new StorageClient([
+                'projectId' => env('GOOGLE_CLOUD_PROJECT_ID'),
+                'keyFilePath' => storage_path('app/neon-research-441708-j6-eeca532c4182.json'),
+            ]);
+
+            $bucket = $storageClient->bucket(env('GOOGLE_CLOUD_STORAGE_BUCKET'));
+            if (!$bucket->exists()) {
+                throw new \Exception("Bucket not found: " . env('GOOGLE_CLOUD_STORAGE_BUCKET'));
+            }
+
+            $object = $bucket->upload(
+                fopen($file->getRealPath(), 'r'),
+                ['name' => $fileName]
+            );
+
+            return [
+                'success' => true,
+                'url' => $object->info()['mediaLink'],
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Hàm xóa file khỏi Google Cloud Storage
+     */
+    private function deleteFromGoogleCloud($fileUrl)
+    {
+        try {
+            $storageClient = new StorageClient([
+                'projectId' => env('GOOGLE_CLOUD_PROJECT_ID'),
+                'keyFilePath' => storage_path('app/neon-research-441708-j6-eeca532c4182.json'),
+            ]);
+
+            $bucket = $storageClient->bucket(env('GOOGLE_CLOUD_STORAGE_BUCKET'));
+
+            $filePath = parse_url($fileUrl, PHP_URL_PATH);
+            $object = $bucket->object(ltrim($filePath, '/'));
+
+            if ($object->exists()) {
+                $object->delete();
+            }
+        } catch (\Exception $e) {
+            // Bạn có thể ghi log hoặc xử lý lỗi tại đây
+        }
     }
 }

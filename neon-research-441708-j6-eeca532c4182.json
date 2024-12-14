@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "neon-research-441708-j6",
+  "private_key_id": "eeca532c4182b7b887e6a9bdfd3ca0419a54d519",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDZfgoZ4mF3QQKH\nCsYEliItZX777Xhh09dNcV8tYWowBRGPNNW1Tl243lTqR5dNhnzNu3KoNYD4uitB\nkwblihy+j4uI5uAd36s5a9OlYBm4zSYPamH0zhiWBbFJ7WpRjc4DJQHfwjOQLZdA\nRoHw5PPodz3iN0xsofm44hkQ9mT5jkazXXIk1dthkpRJiLfs4jJcnodKbk20pd2W\nEe1iLyOtEcU+prGsk3iQVgJy+Zzmcfa0gjj1HmYN/M80BmofRuzKljZzjxkhEL8M\n/0DddbDnzX3H+RE06E5dg0R0sBC31b2/yQ/LaeG3mNf1DtklQIWU9a95PgW0lyZm\nR8qS+xw3AgMBAAECggEATHuIxNJ5sOyxHVkaConbSfiLv78iGtDawVaRgE1mAK3/\nn0sWrhP5XGX/GYYEfJRDNjvpVaK/EHizdnNkNPstIYwsJv/9pzO9LEuxWVIiqXyn\nGjuwZ9zEA5nL3zH4teY2oJ92eb/6zwRhUI6a6mIxLbolDnSg0QDi5vPHmdHz71fF\no888UMdI578ZBKuQVIawbGadrMntoag0kGKw5pyhHv0yWv7fy25r/j36rfsgbRBT\nB7kQOEeRb//9s4C80QVA59uonguJgrbRG41FHeGetmDDWbmeo4IfCnMKgs1PUqMm\nx4oxhM0k0M/hU7yIWgW0zUMwFRkyVqd8AHwxGE2y5QKBgQDwU9d/2Z3ytSkizeRK\ncELrws2BZ1y4nK3LUw5ZCOB8xlmudoH9d7KNhTG9frlPfiRUxSItIkc1HVsw8SGH\nq/cKuyhmAEo9xlxp3tx1/ZcZNImvQrQdCbOBNHSb+MlMANDFftqqi8UD/u9qdwAA\nAiZcATKjNzlsUsqV0MxlLxS/qwKBgQDnrPmYhNy0bUB8OK64Hsxlnm5xxMrxLYUz\nh3bMoppW0STVDy/8hYrVB/+Y5FjB80F2dTmrM92WQrhWXAP0oZ7UCQNtiXpHsXQ/\nSxzH/BedRVt1aC72JQK7TbOZ1wFo1fuyDJGLE66wlxGyXbrTk7P/raHriUGBQGkU\nevnqP0u5pQKBgChoQGR7p2XmdcsnSQoHBAl10G3AfkN//GyiQ1hO+Meh5fRCcqq2\nVGwdB/bvdqLZ96vVFWD3UXepvupksJmKHVhNjYZQ6CqozmLymKiyAZS4U6oHEheL\nyQWhVzXeR6IixPdf0842/+IjHAgPiA14TxDLFsOAhoQjC3LTD3q3xspPAoGBAKqZ\n0eLiU7P5j7bp9p9W7qUWGbZleBxJrQDZDD58rrKnqDvMx0VpAWcGUM3BuSp5ewdE\nI4dS1iXEVAIkGDWYnmD9kiyjRAxvPG8vXK5XkPwbCtJWOd7AOla7TTpH/Z25lXLz\nlmmXwNgBJuL16pHK/o2UyturYzVOvRJ7zHUWzyiRAoGBAICnmGOk1EPWTPfcRnyV\ndA5hvgJjGACkW/GCj7IWcMA7lgHB/XGe8Aqo+T1VBtLjp/McoT0O7vmO8GMCQvLk\nwvsWVKTiX/1N2J8GYk+Q3zaKAW1X5fZ/LK4tq2bA74TD0mGkeTn/UjaLRWblbYtn\n3oefanuk6k0YI/uaarZp1WKW\n-----END PRIVATE KEY-----\n",
+  "client_email": "threetee-upload-glb@neon-research-441708-j6.iam.gserviceaccount.com",
+  "client_id": "100864778774996268214",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/threetee-upload-glb%40neon-research-441708-j6.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
