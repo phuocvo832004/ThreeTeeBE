@@ -68,7 +68,6 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 Route::get('/products', [ProductController::class, 'index']);
-Route::get('/productsuinque/{id}', [ProductController::class, 'indexUnique']);
 
 Route::middleware(['auth:sanctum'])->group(function() {
     Route::patch('products/{id}', [ProductController::class, 'patchUpdateProduct']);
