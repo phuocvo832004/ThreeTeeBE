@@ -95,7 +95,10 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
 
 Route::middleware(['auth:sanctum'])->group(function(){
-    Route::apiResource('reviews', ImageController::class);
+    Route::post('reviews', [ReviewController::class, 'store']); 
+    Route::get('reviews/{product_id}', [ReviewController::class, 'index']); 
+
+
 });
 
 Route::middleware(['auth:sanctum'])->group(function(){

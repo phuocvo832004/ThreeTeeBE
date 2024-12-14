@@ -38,5 +38,10 @@ class Product extends Model
     {
         return $this->hasMany(ProductDetail::class, 'product_id', 'id');
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class,'product_id','id');
+    }
     public $timestamps = true; 
 }
