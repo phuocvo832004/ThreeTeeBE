@@ -32,14 +32,16 @@ class Product extends Model
     {
         return $this->hasMany(OrderDetail::class);
     }
-    public function carts()
-    {
-        return $this->hasMany(Cart::class);
-    }
+
 
     public function productDetails()
     {
         return $this->hasMany(ProductDetail::class, 'product_id', 'id');
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class,'product_id','id');
     }
     public $timestamps = true; 
 }

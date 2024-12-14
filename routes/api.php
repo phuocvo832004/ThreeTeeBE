@@ -43,13 +43,22 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     Route::get('/admin/orders/all', [OrderController::class, 'getAllOrders']);
 
-    Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']); 
-    Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);   
-    Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback'); 
-    Route::post('/orders/{order}/cancel-payment-link', [OrderController::class, 'cancelPaymentLink']);
-    Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return'); 
-    Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel');
+    Route::post('/carts',[CartController::class,'store']);
+    Route::get('/carts',[CartController::class,'index']);
+    Route::get('/carts_5',[CartController::class,'index5']);
+    Route::patch('/carts/{product_detail_id}', [CartController::class, 'update']);
+    Route::delete('/carts/{product_detail_id}', [CartController::class, 'destroy']);
+
+
+    Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']); // Tạo link thanh toán
+    Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);   // Lấy thông tin thanh toán
+    Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback'); // Xử lý callback thanh toán
+    Route::post('/orders/{order}/cancel-payment-link', [OrderController::class, 'cancelPaymentLink']); // Hủy link thanh toán
+    Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return'); // Xử lý trả lại thanh toán
+    Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel'); // Xử lý hủy thanh toán
     
+
+
 });
 
 
@@ -84,9 +93,11 @@ Route::middleware(['auth:sanctum'])->group(function() {
     });
 });
 
-Route::get('reviews', ReviewController::class);
+Route::get('reviews/{product_id}', [ReviewController::class, 'index']); 
 Route::middleware(['auth:sanctum'])->group(function(){
-    Route::post('reviews/{id}', [ReviewController::class, 'store']);
+    Route::post('reviews', [ReviewController::class, 'store']); 
+
+
 });
 
 Route::middleware(['auth:sanctum'])->group(function(){
