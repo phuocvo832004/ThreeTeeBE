@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use App\Http\Resources\ReviewResource;
+use App\Models\Order;
 use Illuminate\Support\Facades\Validator;
 
 class ReviewController extends Controller
@@ -35,14 +36,20 @@ class ReviewController extends Controller
             'score' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:255',
         ])->validate();
-
+    
+        $order = Order::find($request->order_id);
+        if ($order && $order->status !== 'success') {
+            return response()->json(['message' => 'Order status must be success to create a review.'], 400);
+        }
+    
         $review = Review::create($validated);
-
+    
         return (new ReviewResource($review))
             ->additional(['message' => 'Review created successfully'])
             ->response()
             ->setStatusCode(201);
     }
+    
 
     public function show($id)
     {
