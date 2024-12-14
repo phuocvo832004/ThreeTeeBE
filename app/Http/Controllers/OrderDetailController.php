@@ -27,7 +27,10 @@ class OrderDetailController extends Controller
         }
 
         // Lấy danh sách chi tiết đơn hàng theo id của đơn hàng
-        $orderDetails = OrderDetail::where('order_id', $order_id)->get();
+        $orderDetails = OrderDetail::with('productDetail')
+                                    ->where('order_id', $order_id)
+                                    ->get();
+
 
         return OrderDetailsResource::collection($orderDetails);
     }
@@ -36,7 +39,7 @@ class OrderDetailController extends Controller
     {
         $validated = $request->validated();
 
-        $order = Order::find($order_id);
+        $order = Order::find($validated['order_id']);
 
         if (!$order) {
             return response()->json(['message' => 'Order not found.'], 404);
@@ -46,50 +49,113 @@ class OrderDetailController extends Controller
             return response()->json(['message' => 'You are not authorized to add details to this order.'], 403);
         }
 
-        $orderDetail = OrderDetail::create($validated);
+        try {
+            $orderDetail = OrderDetail::create($validated);
 
-        return new OrderDetailsResource($orderDetail);
+            $orderDetail->load('productDetail');
+
+            return new OrderDetailsResource($orderDetail);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == '45000') {
+                return response()->json([
+                    'message' => 'Not enough stock for the product detail!',
+                ], 400); 
+            }
+
+            return response()->json([
+                'message' => 'An unexpected error occurred.',
+                'error' => $e->getMessage(),
+            ], 500); 
+        }
     }
 
-    public function update(UpdateOrderDetailRequest $request, $order_id, $product_id)
+
+    public function update(UpdateOrderDetailRequest $request, $order_id, $product_detail_id)
     {
         // Xác thực dữ liệu từ request
         $validated = $request->validated();
     
         // Tìm đơn hàng theo order_id
         $order = Order::find($order_id);
-
+    
         if (!$order) {
             return response()->json(['message' => 'Order not found.'], 404);
         }
-        
+    
         if ($order->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
             abort(403, 'Unauthorized');
         }
     
+        // Tìm chi tiết đơn hàng
         $orderDetail = OrderDetail::where('order_id', $order_id)
-                                   ->where('product_id', $product_id)
+                                   ->where('product_detail_id', $product_detail_id)
                                    ->first();
     
         if (!$orderDetail) {
             return response()->json(['message' => 'Order detail not found'], 404);
         }
-
+    
+        // Cập nhật amount nếu có
         if (isset($validated['amount'])) {
             $orderDetail->amount = $validated['amount'];
         }
-
+    
         $orderDetail->updated_at = now();
     
-
+        // Thực hiện cập nhật thủ công
         OrderDetail::where('order_id', $order_id)
-                    ->where('product_id', $product_id)
+                    ->where('product_detail_id', $product_detail_id)
                     ->update([
                         'amount' => $orderDetail->amount,
                         'updated_at' => $orderDetail->updated_at,
                     ]);
     
+        // Tải lại dữ liệu từ cơ sở dữ liệu và load mối quan hệ productDetail
+        $orderDetail = OrderDetail::with('productDetail')
+                                   ->where('order_id', $order_id)
+                                   ->where('product_detail_id', $product_detail_id)
+                                   ->first();
+    
+        // Trả về resource
         return new OrderDetailsResource($orderDetail);
     }
     
+    public function destroy($order_id, $product_detail_id)
+    {
+        // Tìm đơn hàng theo order_id
+        $order = Order::find($order_id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        if ($order->user_id !== Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Tìm chi tiết đơn hàng
+        $orderDetail = OrderDetail::where('order_id', $order_id)
+                                ->where('product_detail_id', $product_detail_id)
+                                ->first();
+
+        if (!$orderDetail) {
+            return response()->json(['message' => 'Order detail not found'], 404);
+        }
+
+        // Lưu thông tin productDetail trước khi xóa
+        $productDetail = $orderDetail->productDetail;
+
+        // Xóa thủ công với điều kiện đúng
+        OrderDetail::where('order_id', $order_id)
+                ->where('product_detail_id', $product_detail_id)
+                ->delete();
+
+        // Trả về phản hồi sau khi xóa, bao gồm thông tin productDetail
+        return response()->json([
+            'message' => 'Order detail deleted successfully.',
+        ]);
+    }
+
+
 }
