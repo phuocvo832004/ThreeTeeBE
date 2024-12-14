@@ -43,9 +43,13 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     Route::get('/admin/orders/all', [OrderController::class, 'getAllOrders']);
 
-    // Route::post('/carts',[CartController::class,'store']);
-    // Route::get('/carts',[CartController::class,'index']);
-    // API liên quan đến thanh toán
+    Route::post('/carts',[CartController::class,'store']);
+    Route::get('/carts',[CartController::class,'index']);
+    Route::get('/carts_5',[CartController::class,'index5']);
+    Route::patch('/carts/{product_detail_id}', [CartController::class, 'update']);
+    Route::delete('/carts/{product_detail_id}', [CartController::class, 'destroy']);
+
+
     Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']); // Tạo link thanh toán
     Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);   // Lấy thông tin thanh toán
     Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback'); // Xử lý callback thanh toán

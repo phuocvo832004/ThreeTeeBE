@@ -13,9 +13,9 @@ class CartController extends Controller
     public function index()
     {
         $carts = Auth::user()->carts()
-        ->with('product')
+        ->with('productDetail')
         ->orderBy('created_at', 'desc') 
-        ->paginate(10); 
+        ->paginate(10);
 
         return CartResource::collection($carts);
     }
@@ -23,22 +23,27 @@ class CartController extends Controller
     public function store(StoreCartRequest $request)
     {
         $validated = $request->validated();
+        $cart = new Cart();
 
-        $cart = Auth::user()->carts()->create($validated);
+        $cart->user_id = Auth::id();  // Lấy ID người dùng hiện tại
+        $cart->product_detail_id = $validated['product_detail_id'];
+        $cart->amount = $validated['amount'];
+    
+        $cart->save();
 
         return new CartResource($cart);
     }
 
-    public function destroy($product_id)
+    public function destroy($product_detail_id)
     {
         $affectedRows = \App\Models\Cart::where('user_id', Auth::id())
-        ->where('product_id', $product_id)
-        ->delete();
+            ->where('product_detail_id', $product_detail_id)
+            ->delete();
 
         if ($affectedRows === 0) {
             return response()->json(['message' => 'Không tìm thấy mục cần xóa'], 404);
         }
-        
+
         return response()->json(['message' => 'Xoá thành công'], 200);
     }
 
@@ -49,7 +54,7 @@ class CartController extends Controller
         ]);
 
         $affectedRows = Cart::where('user_id', Auth::id())
-            ->where('product_id', $product_id)
+            ->where('product_detail_id', $product_id)
             ->update([
                 'amount' => $validated['amount'],
             ]);
@@ -65,13 +70,14 @@ class CartController extends Controller
     }
 
     public function index5()
-{
-    $carts = Auth::user()->carts()
-        ->with('product')
-        ->orderBy('created_at', 'desc') // Sắp xếp theo created_at, theo thứ tự giảm dần
-        ->take(5) // Lấy 5 bản ghi đầu tiên
-        ->get();
+    {
+        $carts = Auth::user()->carts()
+            ->with('productDetail') 
+            ->orderBy('created_at', 'desc') 
+            ->take(5) 
+            ->get();
 
-    return CartResource::collection($carts);
-}
+        return CartResource::collection($carts);
+    }
+
 }
