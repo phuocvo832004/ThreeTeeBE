@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\DesignController;
 use App\Http\Controllers\ReviewController;
@@ -77,6 +78,14 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::put('products/{id}', [ProductController::class, 'update']);
     Route::post('products', [ProductController::class, 'store']); 
     Route::delete('products/{id}', [ProductController::class, 'destroy']); 
+
+    Route::prefix('product-details')->group(function () {
+        Route::get('/', [ProductDetailController::class, 'index']); // Lấy danh sách tất cả ProductDetail
+        Route::post('/', [ProductDetailController::class, 'store']); // Tạo mới ProductDetail
+        Route::get('/{id}', [ProductDetailController::class, 'show']); // Xem chi tiết ProductDetail
+        Route::put('/{id}', [ProductDetailController::class, 'update']); // Cập nhật ProductDetail
+        Route::delete('/{id}', [ProductDetailController::class, 'destroy']); // Xóa ProductDetail
+    });
 });
 
 

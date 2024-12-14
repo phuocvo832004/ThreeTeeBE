@@ -3,39 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductDetail;
 use Illuminate\Http\Request;
 use App\Http\Resources\ProductCollection;
 use App\Http\Resources\ProductResource;
+use App\Http\Resources\ProductDetailResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\QueryBuilder\QueryBuilder;
-use Illuminate\Support\Facades\Auth;
 use Spatie\QueryBuilder\AllowedFilter;
+use Illuminate\Support\Facades\Auth;
 
 class ProductController extends Controller
 {
     public function index()
     {
-
         $products = QueryBuilder::for(Product::class)
-        ->allowedFilters( [AllowedFilter::partial('name')])
-        ->defaultSort('-create')
-        ->allowedSorts('price', 'rate')
-        ->paginate();
-
+            ->allowedFilters([AllowedFilter::partial('name')])
+            ->defaultSort('-created_at')
+            ->allowedSorts('rate', 'sold')
+            ->paginate();
+    
         return new ProductCollection($products);
     }
 
     public function indexUnique()
     {
-        $products = QueryBuilder::for(Product::class)
-        ->allowedFilters([AllowedFilter::partial('name')])
-        ->defaultSort('-create')
-        ->allowedSorts('price', 'rate')
-        ->get() 
-        ->unique('name')
-        ->values();
+        $products = QueryBuilder::for(Product::with('productDetails'))
+            ->allowedFilters([AllowedFilter::partial('name')])
+            ->defaultSort('-created_at')
+            ->allowedSorts('rate', 'sold')
+            ->get()
+            ->unique('name')
+            ->values();
 
-    
         $perPage = 10; 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $paginatedProducts = new LengthAwarePaginator(
@@ -48,132 +48,138 @@ class ProductController extends Controller
 
         return new ProductCollection($paginatedProducts);
     }
+
     public function store(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Authentication required'], 401);
-        }
-    
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::check() || !Auth::user()->isAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-    
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:30',
-            'amount' => 'required|integer',
             'description' => 'nullable|string',
-            'create' => 'required|date',
             'sold' => 'integer|nullable',
-            'price' => 'required|integer',
-            'size' => 'required|integer',
             'rate' => 'numeric|nullable|min:0|max:5',
+            'product_details' => 'array',
+            'product_details.*.detail_name' => 'required|string|max:50',
+            'product_details.*.detail_value' => 'required|string|max:255',
         ]);
-    
-        $product = Product::withoutGlobalScopes()->create($validatedData);
-    
+
+        $product = Product::create($validatedData);
+
+        if (isset($validatedData['product_details'])) {
+            foreach ($validatedData['product_details'] as $detail) {
+                $product->productDetails()->create($detail);
+            }
+        }
+
         return new ProductResource($product);
     }
-    
 
     public function show($id)
     {
-        $product = Product::find($id);
-    
+        $product = Product::with('productDetails')->find($id);
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-    
-        return new ProductResource($product); 
+
+        return new ProductResource($product);
     }
-    
 
     public function update(Request $request, $id)
     {
-
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Authentication required'], 401);
-        }
-    
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::check() || !Auth::user()->isAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $product = Product::find($id);
-    
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-    
+
         $validatedData = $request->validate([
-            'name' => 'string|max:30',
-            'amount' => 'integer',
+            'name' => 'nullable|string|max:30',
             'description' => 'nullable|string',
-            'create' => 'date',
-            'sold' => 'integer|nullable',
-            'price' => 'integer',
-            'size' => 'integer',
-            'rate' => 'numeric|nullable|min:0|max:5',
+            'sold' => 'nullable|integer',
+            'rate' => 'nullable|numeric|min:0|max:5',
         ]);
-    
+
         $product->update($validatedData);
-    
-        return new ProductResource($product); 
+
+        return new ProductResource($product);
     }
-    
 
     public function destroy($id)
     {
-
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Authentication required'], 401);
-        }
-    
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::check() || !Auth::user()->isAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $product = Product::find($id);
-    
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-    
+
         $product->delete();
-    
+
         return response()->json(['message' => 'Product deleted successfully']);
     }
-    
 
-    public function patchUpdateProduct(Request $request, $id)
+    public function addProductDetail(Request $request, $productId)
     {
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Authentication required'], 401);
-        }
-    
-        if (!Auth::user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-        
-        $product = Product::find($id);
-    
+        $product = Product::find($productId);
+
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
         }
-    
-        $validatedData = $request->validate([
-            'name' => 'nullable|string|max:30',
-            'amount' => 'nullable|integer',
-            'description' => 'nullable|string',
-            'create' => 'nullable|date',
-            'sold' => 'nullable|integer',
-            'price' => 'nullable|integer',
-            'size' => 'nullable|integer',
-            'rate' => 'nullable|numeric|min:0|max:5',
+
+        $validated = $request->validate([
+            'detail_name' => 'required|string|max:50',
+            'detail_value' => 'required|string|max:255',
         ]);
-    
-        $product->update($validatedData);
-    
-        return new ProductResource($product); 
+
+        $productDetail = $product->productDetails()->create($validated);
+
+        return response()->json([
+            'message' => 'Product detail added successfully.',
+            'product_detail' => new ProductDetailResource($productDetail),
+        ], 201);
     }
-    
+
+    public function updateProductDetail(Request $request, $productId, $detailId)
+    {
+        $productDetail = ProductDetail::where('product_id', $productId)->find($detailId);
+
+        if (!$productDetail) {
+            return response()->json(['message' => 'Product detail not found'], 404);
+        }
+
+        $validated = $request->validate([
+            'detail_name' => 'nullable|string|max:50',
+            'detail_value' => 'nullable|string|max:255',
+        ]);
+
+        $productDetail->update($validated);
+
+        return response()->json([
+            'message' => 'Product detail updated successfully.',
+            'product_detail' => new ProductDetailResource($productDetail),
+        ]);
+    }
+
+    public function deleteProductDetail($productId, $detailId)
+    {
+        $productDetail = ProductDetail::where('product_id', $productId)->find($detailId);
+
+        if (!$productDetail) {
+            return response()->json(['message' => 'Product detail not found'], 404);
+        }
+
+        $productDetail->delete();
+
+        return response()->json(['message' => 'Product detail deleted successfully.']);
+    }
 }

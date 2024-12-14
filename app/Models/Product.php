@@ -13,12 +13,8 @@ class Product extends Model
 
     protected $fillable = [
         'name',
-        'amount',
         'description',
-        'create',
         'sold',
-        'price',
-        'size',
         'rate',
     ];
 
@@ -39,6 +35,11 @@ class Product extends Model
     public function carts()
     {
         return $this->hasMany(Cart::class);
+    }
+
+    public function productDetails()
+    {
+        return $this->hasMany(ProductDetail::class, 'product_id', 'id');
     }
     public $timestamps = true; 
 }
