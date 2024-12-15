@@ -19,11 +19,11 @@ class ProductController extends Controller
         $products = QueryBuilder::for(Product::class)
             ->allowedFilters([
                 AllowedFilter::partial('name'),
-                AllowedFilter::exact('size', 'productDetails.size'), // Filter theo size
+                AllowedFilter::exact('size', 'productDetails.size', 'category'),
             ])
             ->defaultSort('-created_at')
             ->allowedSorts('rate', 'sold')
-            ->with(['productDetails', 'images']) // Tích hợp productDetails và images
+            ->with(['productDetails', 'images'])
             ->paginate();
 
         return new ProductCollection($products);
@@ -40,6 +40,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'sold' => 'integer|nullable',
             'rate' => 'numeric|nullable|min:0|max:5',
+            'category' => 'nullable|string',
             'product_details' => 'array',
             'product_details.*.detail_name' => 'required|string|max:50',
             'product_details.*.detail_value' => 'required|string|max:255',
@@ -82,6 +83,7 @@ class ProductController extends Controller
         $validatedData = $request->validate([
             'name' => 'nullable|string|max:30',
             'description' => 'nullable|string',
+            'category' => 'nullable|string',
             'sold' => 'nullable|integer',
             'rate' => 'nullable|numeric|min:0|max:5',
         ]);

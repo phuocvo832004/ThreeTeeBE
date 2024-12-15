@@ -16,6 +16,7 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'sold' => $this->sold,
             'rate' => $this->rate,
+            'category' => $this->category,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'product_details' => ProductDetailResource::collection($this->whenLoaded('productDetails')),
