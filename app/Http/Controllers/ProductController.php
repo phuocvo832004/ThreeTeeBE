@@ -19,29 +19,35 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = QueryBuilder::for(Product::query()
-            ->leftJoin('product_details', 'products.id', '=', 'product_details.product_id')
+        $products = QueryBuilder::for(
+            Product::query()
+                ->leftJoin('product_details', 'products.id', '=', 'product_details.product_id')
         )
             ->allowedFilters([
                 AllowedFilter::partial('name'),
                 AllowedFilter::exact('size', 'productDetails.size'),
-                AllowedFilter::exact('price', 'productDetails.price'),
                 AllowedFilter::exact('category'),
+                AllowedFilter::callback('price', function ($query, $value) {
+                    if (is_array($value) && count($value) === 2) {
+                        $query->whereBetween('product_details.price', [$value[0], $value[1]]);
+                    }
+                }),
             ])
             ->defaultSort('-created_at')
             ->allowedSorts([
                 'rate',
                 'sold',
-                AllowedSort::custom('price', new MaxPriceSort()), 
+                AllowedSort::custom('price', new MaxPriceSort()),
                 AllowedSort::field('stock', 'product_details.stock'),
             ])
-            ->select('products.*') 
-            ->groupBy('products.id') 
+            ->select('products.*')
+            ->groupBy('products.id')
             ->with('productDetails')
             ->paginate();
     
         return new ProductCollection($products);
     }
+    
     
 
     public function store(Request $request)
