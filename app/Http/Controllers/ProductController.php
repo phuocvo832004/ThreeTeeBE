@@ -19,6 +19,7 @@ class ProductController extends Controller
 {
     public function index()
     {
+        $perPage = 9; 
         $products = QueryBuilder::for(
             Product::query()
                 ->leftJoin('product_details', 'products.id', '=', 'product_details.product_id')
@@ -43,10 +44,19 @@ class ProductController extends Controller
             ->select('products.*')
             ->groupBy('products.id')
             ->with('productDetails')
-            ->paginate();
+            ->paginate($perPage); 
+        
+        $totalPages = $products->lastPage(); 
     
-        return new ProductCollection($products);
+        return response()->json([
+            'data' => ProductResource::collection($products->items()), 
+            'current_page' => $products->currentPage(), 
+            'per_page' => $products->perPage(), 
+            'total_pages' => $totalPages,
+            'total_items' => $products->total(),
+        ]);
     }
+    
     
     
 
