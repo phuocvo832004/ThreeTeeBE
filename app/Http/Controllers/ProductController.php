@@ -11,20 +11,30 @@ use App\Http\Resources\ProductDetailResource;
 use Illuminate\Support\Facades\Auth;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
-
+use Spatie\QueryBuilder\AllowedSort;
 class ProductController extends Controller
 {
     public function index()
     {
-        $products = QueryBuilder::for(Product::class)
+        $products = QueryBuilder::for(Product::query()->join('product_details', 'products.id', '=', 'product_details.product_id'))
             ->allowedFilters([
                 AllowedFilter::partial('name'),
-                AllowedFilter::exact('size', 'productDetails.size', 'category'),
+                AllowedFilter::exact('size', 'productDetails.size'),
+                AllowedFilter::exact('price', 'productDetails.price'),
+                AllowedFilter::exact('category'),
             ])
-            ->defaultSort('-created_at')
-            ->allowedSorts('rate', 'sold')
-            ->with(['productDetails', 'images'])
+            ->defaultSort('-products.created_at')
+            ->allowedSorts([
+                'rate',
+                'sold',
+                AllowedSort::field('price', 'product_details.price'),
+                AllowedSort::field('stock', 'product_details.stock'),
+            ])
+            ->select('products.*')
+            ->groupBy('products.id')
+            ->with('productDetails') 
             ->paginate();
+
 
         return new ProductCollection($products);
     }
