@@ -101,5 +101,24 @@ class UserController extends Controller
             'user' => $user,
         ], 200);
     }
-    
+    public function updateRole(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'role' => 'required|string|in:admin,user,staff', // Các vai trò hợp lệ
+        ]);
+
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $user->role = $validated['role'];
+        $user->save();
+
+        return response()->json([
+            'message' => 'User role updated successfully',
+            'user' => $user,
+        ], 200);
+    }
 }

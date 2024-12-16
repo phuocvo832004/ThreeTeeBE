@@ -41,7 +41,6 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     Route::get('/order/{order_id}/details', [OrderDetailController::class, 'index']);
 
-    Route::get('/admin/orders/all', [OrderController::class, 'getAllOrders']);
 
     Route::post('/carts',[CartController::class,'store']);
     Route::get('/carts',[CartController::class,'index']);
@@ -106,3 +105,11 @@ Route::middleware(['auth:sanctum'])->group(function(){
 });
 
 
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])->group(function () {
+    Route::get('/orders/all', [OrderController::class, 'getAllOrders']);
+
+    Route::get('/users/all', [UserController::class, 'getAllUsers']);
+
+    Route::patch('users/{id}/role', [UserController::class, 'updateRole']);
+
+});
