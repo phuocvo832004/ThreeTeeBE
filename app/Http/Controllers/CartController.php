@@ -13,7 +13,7 @@ class CartController extends Controller
     public function index()
     {
         $carts = Auth::user()->carts()
-        ->with('product.images')
+        ->with(['product.firstImage'])
         ->orderBy('created_at', 'desc') 
         ->paginate(10);
 
@@ -72,7 +72,7 @@ class CartController extends Controller
     public function index5()
     {
         $carts = Auth::user()->carts()
-            ->with('product.images') 
+            ->with('product.firstImage') 
             ->orderBy('created_at', 'desc') 
             ->take(5) 
             ->get();

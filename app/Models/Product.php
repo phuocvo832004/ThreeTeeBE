@@ -49,5 +49,13 @@ class Product extends Model
     {
         return $this->hasMany(Cart::class);
     }
-    
+    public function firstProductDetail()
+    {
+        return $this->hasOne(ProductDetail::class)->oldest(); 
+    }
+    public function firstImage()
+    {
+        return $this->hasOne(Image::class)->oldest(); // Lấy hình ảnh đầu tiên theo thời gian
+    }
+
 }

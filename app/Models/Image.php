@@ -23,4 +23,6 @@ class Image extends Model
     {
         return $this->image_link; 
     }
+
+
 }
