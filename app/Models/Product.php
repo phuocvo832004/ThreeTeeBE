@@ -16,11 +16,12 @@ class Product extends Model
         'description',
         'sold',
         'rate',
+        'category',
     ];
 
     public function images()
     {
-        return $this->hasMany(Image::class);
+        return $this->hasMany(Image::class, 'product_id', 'id');
     }
 
     public function designs()
