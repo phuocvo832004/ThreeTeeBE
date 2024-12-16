@@ -24,22 +24,21 @@ class OrderController extends Controller
     {
         try {
             $body = [
-                'orderCode' => $order->id, // Thêm mã đơn hàng
+                'orderCode' => $order->id,
                 'amount' => $order->totalprice,
                 'currency' => 'VND',
                 'description' => "Payment for Order #" . $order->id,
                 'callback_url' => route('orders.payment.callback', ['order' => $order->id]),
-                'returnUrl' => route('orders.payment.return', ['order' => $order->id]), // Thêm returnUrl
-                'cancelUrl' => route('orders.payment.cancel', ['order' => $order->id]), // Thêm cancelUrl
+                'returnUrl' => route('orders.payment.return', ['order' => $order->id]), 
+                'cancelUrl' => route('orders.payment.cancel', ['order' => $order->id]), 
             ];
     
             $response = $this->payOS->createPaymentLink($body);
     
             if (isset($response['checkoutUrl'])) {
-                // Lưu thông tin payment link và payment_link_id vào cơ sở dữ liệu
                 $order->update([
                     'payment_link' => $response['checkoutUrl'],
-                    'payment_link_id' => $response['orderCode'], // Cập nhật payment_link_id từ PayOS response
+                    'payment_link_id' => $response['orderCode'], 
                 ]);
             }
     
@@ -83,18 +82,15 @@ class OrderController extends Controller
             'payment_date' => now(),
         ]);
     
-        return response()->json([
-            'success' => false,
-            'message' => 'Payment was cancelled',
-            'order_id' => $order->id,
-        ]);
+        return redirect()->away('https://threetee.netlify.app/cancel');
     }
+    
+    
     
 
     public function getPaymentInfo(Order $order)
     {
         try {
-            // Kiểm tra xem payment_link_id có tồn tại không
             if (!$order->payment_link_id) {
                 return response()->json([
                     'success' => false,
@@ -102,7 +98,6 @@ class OrderController extends Controller
                 ], 400);
             }
     
-            // Gọi PayOS API để lấy thông tin liên kết thanh toán
             $response = $this->payOS->getPaymentLinkInformation($order->payment_link_id);
     
             return response()->json([
@@ -121,7 +116,6 @@ class OrderController extends Controller
         try {
             $data = $request->all();
             
-            // Kiểm tra xem dữ liệu có đầy đủ không
             if (!isset($data['paymentLinkId']) || !isset($data['status'])) {
                 return response()->json([
                     'success' => false,
@@ -129,17 +123,15 @@ class OrderController extends Controller
                 ], 400);
             }
     
-            // Tìm đơn hàng dựa trên paymentLinkId
             $order = Order::where('payment_link_id', $data['paymentLinkId'])->first();
     
             if (!$order) {
                 return response()->json(['success' => false, 'message' => 'Order not found'], 404);
             }
     
-            // Cập nhật trạng thái thanh toán của đơn hàng
             $order->update([
-                'payment_status' => $data['status'], // Trạng thái thanh toán, ví dụ: "success", "failed"
-                'payment_date' => now(), // Cập nhật thời gian thanh toán
+                'payment_status' => $data['status'], 
+                'payment_date' => now(),
             ]);
     
             return response()->json([
@@ -147,7 +139,6 @@ class OrderController extends Controller
                 'message' => 'Callback processed successfully',
             ]);
         } catch (\Throwable $th) {
-            // Catch mọi lỗi để kiểm tra lỗi cụ thể
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred: ' . $th->getMessage()
