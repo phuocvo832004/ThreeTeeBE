@@ -49,17 +49,14 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::delete('/carts/{product_detail_id}', [CartController::class, 'destroy']);
 
 
-    Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']); // Tạo link thanh toán
-    Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);   // Lấy thông tin thanh toán
-    Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback'); // Xử lý callback thanh toán
-    Route::post('/orders/{order}/cancel-payment-link', [OrderController::class, 'cancelPaymentLink']); // Hủy link thanh toán
-    Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return'); // Xử lý trả lại thanh toán
-    Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel'); // Xử lý hủy thanh toán
-    
-
-
+    Route::post('/orders/{order}/payment-link', [OrderController::class, 'createPaymentLink']);
+    Route::get('/orders/{order}/payment-info', [OrderController::class, 'getPaymentInfo']);  
+    Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback');
+    Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return');
+    Route::post('/orders/{order}/cancel-payment-link', [OrderController::class, 'cancelPaymentLink']);
+ 
 });
-
+Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel'); 
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/designs', [DesignController::class, 'index']);

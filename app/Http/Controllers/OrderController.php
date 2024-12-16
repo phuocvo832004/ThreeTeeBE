@@ -82,12 +82,12 @@ class OrderController extends Controller
             'payment_date' => now(),
         ]);
     
-        return redirect()->away('https://threetee.netlify.app/cancel');
+        // Sử dụng biến môi trường FRONTEND_URL
+        $frontendUrl = env('FRONTEND_URL', 'https://threetee.netlify.app') . '/cancel';
+    
+        return redirect()->away($frontendUrl);
     }
     
-    
-    
-
     public function getPaymentInfo(Order $order)
     {
         try {
