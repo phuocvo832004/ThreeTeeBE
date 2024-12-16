@@ -43,7 +43,7 @@ class ProductController extends Controller
             ])
             ->select('products.*')
             ->groupBy('products.id')
-            ->with('productDetails')
+            ->with(['productDetails', 'images'])
             ->paginate($perPage); 
         
         $totalPages = $products->lastPage(); 
