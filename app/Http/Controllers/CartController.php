@@ -13,7 +13,7 @@ class CartController extends Controller
     public function index()
     {
         $carts = Auth::user()->carts()
-        ->with('productDetail')
+        ->with('product.images')
         ->orderBy('created_at', 'desc') 
         ->paginate(10);
 
@@ -25,8 +25,8 @@ class CartController extends Controller
         $validated = $request->validated();
         $cart = new Cart();
 
-        $cart->user_id = Auth::id();  // Lấy ID người dùng hiện tại
-        $cart->product_detail_id = $validated['product_detail_id'];
+        $cart->user_id = Auth::id();  
+        $cart->product_id = $validated['product_id'];
         $cart->amount = $validated['amount'];
     
         $cart->save();
@@ -34,10 +34,10 @@ class CartController extends Controller
         return new CartResource($cart);
     }
 
-    public function destroy($product_detail_id)
+    public function destroy($product_id)
     {
         $affectedRows = \App\Models\Cart::where('user_id', Auth::id())
-            ->where('product_detail_id', $product_detail_id)
+            ->where('product_id', $product_id)
             ->delete();
 
         if ($affectedRows === 0) {
@@ -54,7 +54,7 @@ class CartController extends Controller
         ]);
 
         $affectedRows = Cart::where('user_id', Auth::id())
-            ->where('product_detail_id', $product_id)
+            ->where('product_id', $product_id)
             ->update([
                 'amount' => $validated['amount'],
             ]);
@@ -72,7 +72,7 @@ class CartController extends Controller
     public function index5()
     {
         $carts = Auth::user()->carts()
-            ->with('productDetail') 
+            ->with('product.images') 
             ->orderBy('created_at', 'desc') 
             ->take(5) 
             ->get();

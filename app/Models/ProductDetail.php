@@ -23,10 +23,6 @@ class ProductDetail extends Model
         return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
-    public function carts()
-    {
-        return $this->hasMany(Cart::class);
-    }
-    
+
     public $timestamps = true;
 }

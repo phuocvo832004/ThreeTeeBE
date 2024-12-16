@@ -45,4 +45,9 @@ class Product extends Model
         return $this->hasMany(Review::class,'product_id','id');
     }
     public $timestamps = true; 
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
+    
 }
