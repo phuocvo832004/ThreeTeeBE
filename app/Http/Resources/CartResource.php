@@ -23,6 +23,15 @@ class CartResource extends JsonResource
                 'size' => $this->productDetail->size ?? null,
                 'stock' => $this->productDetail->stock ?? null,
             ],
+            'product' =>[
+                "id" => $this->productDetail->product->id,
+                "name" => $this->productDetail->product->name,
+                "description" => $this->productDetail->product->description,
+                "sold" => $this->productDetail->product->sold,
+                "rate" => $this->productDetail->product->rate,
+                "category" => $this->productDetail->product->category,
+
+            ] ,
             'first_image' => $this->productDetail->product->images->first()->image_link ?? null, 
             'amount' => $this->amount,
             'created_at' => $this->created_at,
