@@ -119,3 +119,25 @@ Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or
     Route::get('/user/{usersId}/orders',[UserController::class, 'showUserOrders']);
     Route::get('/order/{orderId}/details',[OrderDetailController::class,'orderDetail']);
 });
+
+
+// public
+
+
+
+// user
+Route::middleware(['auth:sanctum'])->group(function(){
+
+
+});
+
+//staff
+Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or_staff'])->group(function () {
+
+});
+
+
+// admin
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])->group(function () {
+
+});
