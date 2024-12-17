@@ -69,6 +69,27 @@ class ProductDetailController extends Controller
         return new ProductDetailResource($productDetail);
     }
 
+    public function patchUpdate(Request $request, $id)
+    {
+        $productDetail = ProductDetail::find($id);
+
+        if (!$productDetail) {
+            return response()->json(['message' => 'ProductDetail not found'], 404);
+        }
+
+        $validatedData = $request->validate([
+            'stock' => 'sometimes|integer|min:0',
+            'price' => 'sometimes|numeric|min:0',
+            'size' => 'sometimes|string|max:10',
+        ]);
+
+        $productDetail->fill($validatedData);
+        $productDetail->save();
+
+        return new ProductDetailResource($productDetail);
+    }
+
+
     public function destroy($id)
     {
         if (!Auth::check() || !Auth::user()->isAdmin()) {
