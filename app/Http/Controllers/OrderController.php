@@ -174,7 +174,10 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
+        $user = Auth::user();
+
         $order = QueryBuilder::for(Order::class)
+                    ->where('user_id', $user->id)
                     ->allowedFilters([
                         'status',
                         'totalprice', 

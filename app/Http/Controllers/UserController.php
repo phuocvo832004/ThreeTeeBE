@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OrderCollection;
 use App\Models\Image;
+use App\Models\Order;
 use App\Models\User;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
@@ -120,5 +122,55 @@ class UserController extends Controller
             'message' => 'User role updated successfully',
             'user' => $user,
         ], 200);
+    }
+
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+
+        return response()->json([
+            'user' => $user
+        ], 200);
+    }
+
+    public function showUserOrders($id)
+    {
+        $user = User::findOrFail($id);
+        $order = QueryBuilder::for(Order::class)
+                    ->where('user_id', $user->id)
+                    ->allowedFilters([
+                        'status',
+                        'totalprice', 
+                        'payment_status',
+                        AllowedFilter::callback('order_date_year', function ($query, $value) {
+                            $query->whereYear('order_date', $value);
+                        }),
+                        AllowedFilter::callback('order_date_month', function ($query, $value) {
+                            $query->whereMonth('order_date', $value);
+                        }),
+                        AllowedFilter::callback('order_date_day', function ($query, $value) {
+                            $query->whereDay('order_date', $value);
+                        }),
+                        AllowedFilter::callback('order_date_range', function ($query, $value) {
+                            if (is_array($value)) {
+                                $startDate = $value[0] ?? null;
+                                $endDate = $value[1] ?? null;
+                            } elseif (is_string($value)) {
+                                $dates = explode(',', $value);
+                                $startDate = $dates[0] ?? null;
+                                $endDate = $dates[1] ?? null;
+                            } else {
+                                return;
+                            }
+                
+                            if ($startDate && $endDate) {
+                                $query->whereBetween('order_date', [$startDate, $endDate]);
+                            }
+                        })
+                    ])                    
+                    ->defaultSort('status')
+                    ->allowedSorts('status','totalprice','payment_status','payment_date','order_date')
+                    ->paginate();
+        return new OrderCollection($order);
     }
 }

@@ -109,4 +109,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])
 
     Route::patch('users/{id}/role', [UserController::class, 'updateRole']);
 
+
+    //Giong staff
+
+    Route::get('/users/{userId}',[UserController::class, 'show']);
+
+    Route::get('/user/{usersId}/orders',[UserController::class, 'showUserOrders']);
+
+    Route::get('/order/{orderId}/details',[OrderDetailController::class,'orderDetail']);
+
+
+});
+
+
+Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or_staff'])->group(function () {
+    Route::get('/users/{userId}',[UserController::class, 'show']);
+
+    Route::get('/user/{usersId}/orders',[UserController::class, 'showUserOrders']);
+
+    Route::get('/order/{orderId}/details',[OrderDetailController::class,'orderDetail']);
 });

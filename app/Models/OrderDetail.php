@@ -38,16 +38,16 @@ class OrderDetail extends Model
         return $this->belongsTo(Product::class); 
     }
 
-    protected static function booted(): void
-    {
-        static::addGlobalScope('creator', function (Builder $builder) {
-            if (!Auth::check() || !Auth::user()->isAdmin()) {
-                $builder->whereHas('order', function ($query) {
-                    $query->where('user_id', Auth::id());
-                });
-            }
-        });
-    }
+    // protected static function booted(): void
+    // {
+    //     static::addGlobalScope('creator', function (Builder $builder) {
+    //         if (!Auth::check() || !Auth::user()->isAdmin()) {
+    //             $builder->whereHas('order', function ($query) {
+    //                 $query->where('user_id', Auth::id());
+    //             });
+    //         }
+    //     });
+    // }
 
     public function productDetail()
     {

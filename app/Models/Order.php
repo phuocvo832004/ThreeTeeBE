@@ -36,14 +36,14 @@ class Order extends Model
     }
 
 
-    protected static function booted(): void
-    {
-        static::addGlobalScope('creator', function (Builder $builder) {
-            if (!Auth::check() || !Auth::user()->isAdmin()) {
-                $builder->where('user_id', Auth::id());
-            }
-        });
-    }
+    // protected static function booted(): void
+    // {
+    //     static::addGlobalScope('creator', function (Builder $builder) {
+    //         if (!Auth::check() || !Auth::user()->isAdmin()) {
+    //             $builder->where('user_id', Auth::id());
+    //         }
+    //     });
+    // }
 
     public function orderDetails()
     {
