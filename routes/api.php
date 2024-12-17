@@ -24,6 +24,7 @@ Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCa
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('reviews/{product_id}', [ReviewController::class, 'index']); 
+Route::get('/product-details', [ProductDetailController::class, 'index']); 
 
 // user
 Route::middleware(['auth:sanctum'])->group(function(){
@@ -74,7 +75,6 @@ Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or
     Route::delete('products/{id}', [ProductController::class, 'destroy']); 
 
     Route::prefix('product-details')->group(function () {
-        Route::get('/', [ProductDetailController::class, 'index']); 
         Route::post('/', [ProductDetailController::class, 'store']); 
         Route::get('/{id}', [ProductDetailController::class, 'show']); 
         Route::put('/{id}', [ProductDetailController::class, 'update']); 
