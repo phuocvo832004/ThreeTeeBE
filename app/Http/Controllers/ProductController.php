@@ -56,15 +56,9 @@ class ProductController extends Controller
             'total_items' => $products->total(),
         ]);
     }
-    
-    
-    
 
     public function store(Request $request)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
 
         $validatedData = $request->validate([
             'name' => 'required|string|max:30',
@@ -101,10 +95,6 @@ class ProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $product = Product::find($id);
 
         if (!$product) {
@@ -126,10 +116,6 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
         $product = Product::find($id);
 
         if (!$product) {

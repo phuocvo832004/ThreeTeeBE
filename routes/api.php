@@ -24,7 +24,7 @@ Route::middleware('auth:sanctum')->patch('/update-user', [UserController::class,
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
- 
+
 // Route::apiResource('orders',OrderController::class)->only([
 //   'index','show','store','update'
 // ]);
@@ -54,7 +54,7 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback');
     Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return');
     Route::post('/orders/{order}/cancel-payment-link', [OrderController::class, 'cancelPaymentLink']);
- 
+
 });
 Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel'); 
 
@@ -109,23 +109,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])
 
     Route::patch('users/{id}/role', [UserController::class, 'updateRole']);
 
-
     //Giong staff
-
     Route::get('/users/{userId}',[UserController::class, 'show']);
-
     Route::get('/user/{usersId}/orders',[UserController::class, 'showUserOrders']);
-
     Route::get('/order/{orderId}/details',[OrderDetailController::class,'orderDetail']);
-
-
 });
-
-
 Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or_staff'])->group(function () {
     Route::get('/users/{userId}',[UserController::class, 'show']);
-
     Route::get('/user/{usersId}/orders',[UserController::class, 'showUserOrders']);
-
     Route::get('/order/{orderId}/details',[OrderDetailController::class,'orderDetail']);
 });
