@@ -20,19 +20,40 @@ class CartController extends Controller
         return CartResource::collection($carts);
     }
 
-    public function store(StoreCartRequest $request)
-    {
-        $validated = $request->validated();
-        $cart = new Cart();
+public function store(StoreCartRequest $request)
+{
+    $validated = $request->validated();
 
-        $cart->user_id = Auth::id();  
+    // Tìm xem sản phẩm này đã tồn tại trong giỏ hàng của user chưa
+    $existingCart = Cart::where('user_id', Auth::id())
+        ->where('product_detail_id', $validated['product_detail_id'])
+        ->first();
+
+    if ($existingCart) {
+
+        $affectedRows = Cart::where('user_id', Auth::id())
+        ->where('product_detail_id', $validated['product_detail_id'])
+        ->update([
+            'amount' => $existingCart->amount + $validated['amount'],
+            'updated_at' => now(),
+        ]);
+
+        $updatedCart = Cart::where('user_id', Auth::id())
+            ->where('product_detail_id', $validated['product_detail_id'])
+            ->first();
+        return new CartResource($updatedCart);
+    } else {
+        // Nếu chưa tồn tại, tạo mới
+        $cart = new Cart();
+        $cart->user_id = Auth::id();
         $cart->product_detail_id = $validated['product_detail_id'];
         $cart->amount = $validated['amount'];
-    
         $cart->save();
 
         return new CartResource($cart);
     }
+}
+
 
     public function destroy($product_detail_id)
     {
