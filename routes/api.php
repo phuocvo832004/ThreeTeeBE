@@ -97,7 +97,9 @@ Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or
 
     //Profit
     Route::get('/profit-statistics', [OrderController::class, 'getProfitStatistics']);
-
+    
+    //Product revenue
+    Route::get('/product-revenue', [ProductController::class, 'getProductRevenue']);
 
 });
 

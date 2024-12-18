@@ -13,7 +13,7 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\AllowedSort;
 use App\Sorts\MaxPriceSort;
-
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -181,4 +181,32 @@ class ProductController extends Controller
 
         return response()->json(['message' => 'Product detail deleted successfully.']);
     }
+    public function getProductRevenue()
+    {
+        $productRevenue = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id') 
+            ->join('product_details', 'order_details.product_detail_id', '=', 'product_details.id')
+            ->join('products', 'product_details.product_id', '=', 'products.id')
+            ->select(
+                'products.id as product_id',
+                'products.name as product_name',
+                DB::raw('SUM(order_details.amount * product_details.price) as total_revenue')
+            )
+            ->where('orders.status', 'success') 
+            ->groupBy('products.id', 'products.name')
+            ->orderBy('total_revenue', 'desc') 
+            ->limit(10)
+            ->get();
+
+        $revenueArray = $productRevenue->map(function ($item) {
+            return [
+                'product_id' => $item->product_id,
+                'product_name' => $item->product_name,
+                'total_revenue' => $item->total_revenue,
+            ];
+        });
+
+        return response()->json($revenueArray);
+    }
+
 }
