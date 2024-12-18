@@ -15,6 +15,8 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\OrderDetailController;
 use App\Http\Controllers\UserController;
+use App\Models\OrderDetail;
+
 require __DIR__.'/auth.php';
 
 // public
@@ -34,8 +36,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Orders and order details
     Route::apiResource('orders', OrderController::class);
-    Route::apiResource('order_details', OrderDetailController::class);
-
+    //Route::apiResource('order_details', OrderDetailController::class);
+    Route::post('/order_details', [OrderDetailController::class,'store']);
     Route::put('/orders/{order_id}/orderdetails/{product_detail_id}', [OrderDetailController::class, 'update']);
     Route::delete('/orders/{order_id}/orderdetails/{product_detail_id}', [OrderDetailController::class, 'destroy']);
     Route::get('/order/{order_id}/details', [OrderDetailController::class, 'index']);
