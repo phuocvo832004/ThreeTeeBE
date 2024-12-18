@@ -209,4 +209,33 @@ class ProductController extends Controller
         return response()->json($revenueArray);
     }
 
+    public function getTop3ProductRevenuePerMonth()
+    {
+        $topProductsPerMonth = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('product_details', 'order_details.product_detail_id', '=', 'product_details.id')
+            ->join('products', 'product_details.product_id', '=', 'products.id')
+            ->select(
+                DB::raw('YEAR(orders.created_at) as year'),
+                DB::raw('MONTH(orders.created_at) as month'),
+                'products.id as product_id',
+                'products.name as product_name',
+                DB::raw('SUM(order_details.amount * product_details.price) as total_revenue')
+            )
+            ->where('orders.status', 'success') 
+            ->groupBy(DB::raw('YEAR(orders.created_at)'), DB::raw('MONTH(orders.created_at)'), 'products.id', 'products.name')
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->orderBy('total_revenue', 'desc')
+            ->get()
+            ->groupBy(function ($item) {
+                return $item->year . '-' . $item->month;
+            })
+            ->map(function ($monthlyProducts) {
+                return $monthlyProducts->take(3); // Lấy top 3 sản phẩm cho mỗi tháng
+            });
+
+        return response()->json($topProductsPerMonth);
+    }
+
 }

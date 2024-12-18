@@ -217,4 +217,115 @@ class UserController extends Controller
 
         return response()->json($statisticsArray);
     }
+
+
+    public function getDashboardStatistics()
+    {
+        $currentMonth = now()->format('m');
+        $lastMonth = now()->subMonth()->format('m');
+        $currentYear = now()->format('Y');
+
+        // Tổng doanh thu từ tất cả thời gian
+        $totalRevenue = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('product_details', 'order_details.product_detail_id', '=', 'product_details.id')
+            ->where('orders.status', 'success')
+            ->sum(DB::raw('order_details.amount * product_details.price'));
+
+        // Doanh thu tháng này
+        $currentRevenue = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('product_details', 'order_details.product_detail_id', '=', 'product_details.id')
+            ->where('orders.status', 'success')
+            ->whereMonth('orders.order_date', $currentMonth)
+            ->whereYear('orders.order_date', $currentYear)
+            ->sum(DB::raw('order_details.amount * product_details.price'));
+
+        // Doanh thu tháng trước
+        $lastRevenue = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('product_details', 'order_details.product_detail_id', '=', 'product_details.id')
+            ->where('orders.status', 'success')
+            ->whereMonth('orders.order_date', $lastMonth)
+            ->whereYear('orders.order_date', $currentYear)
+            ->sum(DB::raw('order_details.amount * product_details.price'));
+
+        // Tổng user từ tất cả thời gian
+        $totalUsers = DB::table('users')->count();
+
+        // User tháng này
+        $currentUsers = DB::table('users')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // User tháng trước
+        $lastUsers = DB::table('users')
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // Tổng sản phẩm từ tất cả thời gian
+        $totalProducts = DB::table('products')->count();
+
+        // Sản phẩm tháng này
+        $currentProducts = DB::table('products')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // Sản phẩm tháng trước
+        $lastProducts = DB::table('products')
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // Tổng số sản phẩm bán từ tất cả thời gian
+        $totalSold = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->where('orders.status', 'success')
+            ->sum('order_details.amount');
+
+        // Sản phẩm bán tháng này
+        $currentSold = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->where('orders.status', 'success')
+            ->whereMonth('orders.order_date', $currentMonth)
+            ->whereYear('orders.order_date', $currentYear)
+            ->sum('order_details.amount');
+
+        // Sản phẩm bán tháng trước
+        $lastSold = DB::table('order_details')
+            ->join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->where('orders.status', 'success')
+            ->whereMonth('orders.order_date', $lastMonth)
+            ->whereYear('orders.order_date', $currentYear)
+            ->sum('order_details.amount');
+
+        // Hàm tính phần trăm tăng trưởng
+        $growth = function ($current, $last) {
+            if ($last == 0) return 0;
+            return round((($current - $last) / $last) * 100, 2);
+        };
+
+        return response()->json([
+            'revenue' => [
+                'total' => $totalRevenue,
+                'growth' => $growth($currentRevenue, $lastRevenue),
+            ],
+            'users' => [
+                'total' => $totalUsers,
+                'growth' => $growth($currentUsers, $lastUsers),
+            ],
+            'products' => [
+                'total' => $totalProducts,
+                'growth' => $growth($currentProducts, $lastProducts),
+            ],
+            'sold_products' => [
+                'total' => $totalSold,
+                'growth' => $growth($currentSold, $lastSold),
+            ],
+        ]);
+    }
+
 }

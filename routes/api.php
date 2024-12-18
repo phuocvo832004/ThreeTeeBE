@@ -115,5 +115,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])
 
     //User Log
     Route::get('/user-logs', [UserController::class, 'userLog']);
+    
+
+    Route::get('/dashboard-statistics', [UserController::class, 'getDashboardStatistics']);
+
+    Route::get('/product-revenue-top3', [ProductController::class, 'getTop3ProductRevenuePerMonth']);
 
 });
