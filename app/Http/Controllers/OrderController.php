@@ -311,24 +311,24 @@ class OrderController extends Controller
     }
 
     public function getProfitStatistics()
-{
-    $orderStatistics = DB::table('orders')
-        ->selectRaw('YEAR(order_date) as year, MONTH(order_date) as month, SUM(totalprice) as total_price')
-        ->where('status', 'success')
-        ->groupBy('year', 'month')
-        ->orderBy('year', 'asc')
-        ->orderBy('month', 'asc')
-        ->get();
+    {
+        $orderStatistics = DB::table('orders')
+            ->selectRaw('YEAR(order_date) as year, MONTH(order_date) as month, SUM(totalprice) as total_price')
+            ->where('status', 'success')
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->get();
 
-    $statisticsArray = $orderStatistics->map(function ($item) {
-        return [
-            'year' => $item->year,
-            'month' => $item->month,
-            'total_price' => $item->total_price,
-        ];
-    });
+        $statisticsArray = $orderStatistics->map(function ($item) {
+            return [
+                'year' => $item->year,
+                'month' => $item->month,
+                'total_price' => $item->total_price,
+            ];
+        });
 
-    return response()->json($statisticsArray);
-}
+        return response()->json($statisticsArray);
+    }
 
 }
