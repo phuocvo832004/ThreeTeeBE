@@ -30,9 +30,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // User profile
     Route::patch('/update-password', [UserController::class, 'updatePassword']);
     Route::patch('/update-user', [UserController::class, 'updateUser']);
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+    Route::get('/user', [UserController::class, 'currentUser']);
 
     // Orders and order details
     Route::apiResource('orders', OrderController::class);
@@ -98,4 +96,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'is_admin'])
 
     // Order Management
     Route::get('/orders/all', [OrderController::class, 'getAllOrders']);
+
+    //User Log
+    Route::get('/user-logs', [UserController::class, 'userLog']);
+
 });

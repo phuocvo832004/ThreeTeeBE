@@ -6,6 +6,7 @@ use App\Http\Resources\OrderCollection;
 use App\Models\Image;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\UserLog;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -173,4 +174,27 @@ class UserController extends Controller
                     ->paginate();
         return new OrderCollection($order);
     }
+
+    public function currentUser(Request $request)
+    {
+        $user = $request->user();
+        
+        UserLog::updateOrCreate(
+            ['user_id' => $user->id], 
+            [
+                'name' => $user->name,
+                'role' => $user->role, 
+                'avatar' => $user->avatar, 
+            ]
+        )->touch();;
+        return response()->json($user);
+    }
+
+    public function userLog(Request $request)
+    {
+        $userLogs = UserLog::orderBy('updated_at', 'desc')->limit(10)->get();
+    
+        return response()->json($userLogs);
+    }
+    
 }

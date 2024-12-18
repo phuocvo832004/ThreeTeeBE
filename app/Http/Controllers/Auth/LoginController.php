@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Models\UserLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -29,6 +30,15 @@ class LoginController extends Controller
             ], 403); // HTTP 403: Forbidden
         }
     
+        UserLog::updateOrCreate(
+            ['user_id' => $user->id], 
+            [
+                'name' => $user->name,
+                'role' => $user->role, 
+                'avatar' => $user->avatar, 
+            ]
+        )->touch();;
+
         // Tạo token và trả về thông tin người dùng
         $data = [
             'token' => $user->createToken("token for " . $user->email)->plainTextToken,
