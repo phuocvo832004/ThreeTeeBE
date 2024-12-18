@@ -11,6 +11,7 @@ use App\Models\Order;
 use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use PayOS\PayOS;
 
@@ -289,4 +290,45 @@ class OrderController extends Controller
             'data' => $orders,
         ]);
     }
+    public function getOrderStatistics()
+    {
+        $orderStatistics = DB::table('orders')
+            ->selectRaw('YEAR(order_date) as year, MONTH(order_date) as month, COUNT(*) as total_orders')
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->get();
+
+        $statisticsArray = $orderStatistics->map(function ($item) {
+            return [
+                'year' => $item->year,
+                'month' => $item->month,
+                'total_orders' => $item->total_orders,
+            ];
+        });
+
+        return response()->json($statisticsArray);
+    }
+
+    public function getProfitStatistics()
+{
+    $orderStatistics = DB::table('orders')
+        ->selectRaw('YEAR(order_date) as year, MONTH(order_date) as month, SUM(totalprice) as total_price')
+        ->where('status', 'success')
+        ->groupBy('year', 'month')
+        ->orderBy('year', 'asc')
+        ->orderBy('month', 'asc')
+        ->get();
+
+    $statisticsArray = $orderStatistics->map(function ($item) {
+        return [
+            'year' => $item->year,
+            'month' => $item->month,
+            'total_price' => $item->total_price,
+        ];
+    });
+
+    return response()->json($statisticsArray);
+}
+
 }
