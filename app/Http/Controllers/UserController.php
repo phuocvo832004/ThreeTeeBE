@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserLog;
 use Cloudinary\Cloudinary;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Spatie\QueryBuilder\AllowedFilter;
@@ -197,4 +198,23 @@ class UserController extends Controller
         return response()->json($userLogs);
     }
     
+    public function getUserStatistics()
+    {
+        $userStatistics = DB::table('users')
+            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as total_users')
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->get();
+
+        $statisticsArray = $userStatistics->map(function ($item) {
+            return [
+                'year' => $item->year,
+                'month' => $item->month,
+                'total_users' => $item->total_users,
+            ];
+        });
+
+        return response()->json($statisticsArray);
+    }
 }

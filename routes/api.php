@@ -85,6 +85,11 @@ Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or
     Route::get('/users/{userId}', [UserController::class, 'show']);
     Route::get('/user/{usersId}/orders', [UserController::class, 'showUserOrders']);
     Route::get('/order/{orderId}/details', [OrderDetailController::class, 'orderDetail']);
+
+
+    // User Register List
+    Route::get('/user-statistics', [UserController::class, 'getUserStatistics']);
+
 });
 
 
