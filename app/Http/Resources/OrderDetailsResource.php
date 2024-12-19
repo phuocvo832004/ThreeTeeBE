@@ -18,6 +18,7 @@ class OrderDetailsResource extends JsonResource
             'order_id' => $this->order_id,
             'amount' => $this->amount,
             'product_detail' => new ProductDetailResource($this->whenLoaded('productDetail')), 
+            'design_id' => $this->design_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

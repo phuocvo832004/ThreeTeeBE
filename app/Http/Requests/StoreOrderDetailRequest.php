@@ -24,7 +24,8 @@ class StoreOrderDetailRequest extends FormRequest
         return [
             'order_id' => 'required|exists:orders,id',
             'amount' => 'required|integer|min:1',
-            'product_detail_id' => 'required|exists:product_details,id',
+            'product_detail_id' => 'sometimes|required|exists:product_details,id',
+            'design_id' => 'sometimes|required|exists:designs,id'
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
 
 class OrderDetail extends Model
@@ -16,6 +17,7 @@ class OrderDetail extends Model
         'order_id',
         'amount',
         'product_detail_id',
+        'design_id',
     ];
 
     /**
@@ -52,6 +54,11 @@ class OrderDetail extends Model
     public function productDetail()
     {
         return $this->belongsTo(ProductDetail::class, 'product_detail_id', 'id');
+    }
+
+    public function design()
+    {
+        return $this->belongsTo(Design::class, 'design_id');
     }
 
 }

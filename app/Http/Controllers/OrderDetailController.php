@@ -50,7 +50,6 @@ class OrderDetailController extends Controller
             $orderDetail = OrderDetail::create($validated);
 
             $orderDetail->load('productDetail');
-
             return new OrderDetailsResource($orderDetail);
 
         } catch (\Illuminate\Database\QueryException $e) {
@@ -68,7 +67,7 @@ class OrderDetailController extends Controller
     }
 
 
-    public function update(UpdateOrderDetailRequest $request, $order_id, $product_detail_id)
+    public function update(UpdateOrderDetailRgequest $request, $order_id, $product_detail_id)
     {
         $validated = $request->validated();
     
