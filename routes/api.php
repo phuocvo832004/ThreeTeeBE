@@ -67,7 +67,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('reviews', [ReviewController::class, 'store']);
 
     // Order&Detail
-    Route::get('/orderanddetail/{orderId}',[OrderController::class],'getOrderUser');
+    Route::get('/orderanddetail/{orderId}',[OrderController::class,'getOrderUser']);
 });
 
 
