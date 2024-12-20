@@ -344,6 +344,7 @@ class OrderController extends Controller
 
     public function getOrderUser($orderId)
     {
+        
         $order = Order::with(['user', 'orderDetails.productDetail.product'])->find($orderId);
     
         if (!$order) {
