@@ -70,6 +70,11 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255', 
             'avatar' => 'sometimes|required|file|mimes:jpg,jpeg,png,gif|max:20480', 
+            'post_code' => 'sometimes|nullable|string|max:10', 
+            'phone_number' => 'sometimes|nullable|string|max:10|regex:/^[0-9+\-\(\)\s]*$/', 
+            'city' => 'sometimes|nullable|string|max:255', 
+            'address' => 'sometimes|nullable|string|max:255', 
+            'country' => 'sometimes|nullable|string|max:255', 
         ]);
     
         $user = auth()->user(); 
@@ -94,11 +99,17 @@ class UserController extends Controller
                 return response()->json(['message' => 'Upload failed: ' . $e->getMessage()], 500);
             }
         }
-    
+
         $user->update([
-            'name' => $request->input('name', $user->name), 
+            'name' => $request->input('name', $user->name),
             'avatar' => $imageUrl,
+            'post_code' => $request->input('post_code', $user->post_code),
+            'phone_number' => $request->input('phone_number', $user->phone_number),
+            'city' => $request->input('city', $user->city),
+            'address' => $request->input('address', $user->address),
+            'country' => $request->input('country', $user->country),
         ]);
+        
     
 
         return response()->json([
