@@ -20,18 +20,25 @@ class OrderController extends Controller
 
     protected PayOS $payOS;
 
-
+    protected function hashOrderId($orderId)
+    {
+        $secretKey = config('app.key');
+        return hash_hmac('sha256', $orderId, $secretKey);
+    }
+    
+    
     public function createPaymentLink(Request $request, Order $order)
     {
+        $hashedOrderId = $this->hashOrderId($order->id);
         try {
             $body = [
-                'orderCode' => $order->id,
+                'orderCode' => $hashedOrderId,
                 'amount' => $order->totalprice,
                 'currency' => 'VND',
                 'description' => "Payment for Order #" . $order->id,
-                'callback_url' => route('orders.payment.callback', ['order' => $order->id]),
-                'returnUrl' => route('orders.payment.return', ['order' => $order->id]), 
-                'cancelUrl' => route('orders.payment.cancel', ['order' => $order->id]), 
+                'callback_url' => route('orders.payment.callback', ['order' => $hashedOrderId]),
+                'returnUrl' => route('orders.payment.return', ['order' => $hashedOrderId]),
+                'cancelUrl' => route('orders.payment.cancel', ['order' => $hashedOrderId]),
             ];
     
             $response = $this->payOS->createPaymentLink($body);
@@ -110,38 +117,36 @@ class OrderController extends Controller
 
     public function handlePaymentCallback(Request $request)
     {
-        try {
-            $data = $request->all();
-            
-            if (!isset($data['paymentLinkId']) || !isset($data['status'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Missing paymentLinkId or status in the callback data'
-                ], 400);
-            }
+        $data = $request->all();
     
-            $order = Order::where('payment_link_id', $data['paymentLinkId'])->first();
-    
-            if (!$order) {
-                return response()->json(['success' => false, 'message' => 'Order not found'], 404);
-            }
-    
-            $order->update([
-                'payment_status' => $data['status'], 
-                'payment_date' => now(),
-            ]);
-    
-            return response()->json([
-                'success' => true,
-                'message' => 'Callback processed successfully',
-            ]);
-        } catch (\Throwable $th) {
+        if (!isset($data['paymentLinkId'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'An error occurred: ' . $th->getMessage()
-            ], 500);
+                'message' => 'Missing paymentLinkId in the callback data'
+            ], 400);
         }
+    
+        $hashedOrderId = $data['paymentLinkId'];
+    
+        $order = Order::all()->first(function ($order) use ($hashedOrderId) {
+            return $this->hashOrderId($order->id) === $hashedOrderId;
+        });
+    
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Order not found'], 404);
+        }
+    
+        $order->update([
+            'payment_status' => $data['status'],
+            'payment_date' => now(),
+        ]);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Callback processed successfully',
+        ]);
     }
+    
 
     public function cancelPaymentLink(Request $request, Order $order)
     {
