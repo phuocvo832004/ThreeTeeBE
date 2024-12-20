@@ -101,6 +101,8 @@ Route::prefix('staff')->name('staff.')->middleware(['auth:sanctum', 'is_admin_or
     //Product revenue
     Route::get('/product-revenue', [ProductController::class, 'getProductRevenue']);
 
+    Route::get('/order/{orderId}/allinfo',[OrderController::class,'getOrderAdmin']);
+
 });
 
 

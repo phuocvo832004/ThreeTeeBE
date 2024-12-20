@@ -331,4 +331,16 @@ class OrderController extends Controller
         return response()->json($statisticsArray);
     }
 
+    public function getOrderAdmin($orderId)
+    {
+        $order = Order::with(['user', 'orderDetails.productDetail.product'])->find($orderId);
+
+        if (!$order) {
+            return response()->json([
+                'message' => 'Order not found',
+            ], 404);
+        }
+    
+        return response()->json($order);
+    }
 }
