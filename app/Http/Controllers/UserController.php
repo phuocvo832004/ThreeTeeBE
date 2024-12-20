@@ -71,7 +71,7 @@ class UserController extends Controller
             'name' => 'sometimes|required|string|max:255', 
             'avatar' => 'sometimes|required|file|mimes:jpg,jpeg,png,gif|max:20480', 
             'post_code' => 'sometimes|nullable|string|max:10', 
-            'phone_number' => 'sometimes|nullable|string|max:15|regex:/^[0-9+\-\(\)\s]*$/', 
+            'phone_number' => 'sometimes|nullable|string|max:10|regex:/^[0-9+\-\(\)\s]*$/', 
             'city' => 'sometimes|nullable|string|max:255', 
             'address' => 'sometimes|nullable|string|max:255', 
             'country' => 'sometimes|nullable|string|max:255', 
@@ -99,7 +99,7 @@ class UserController extends Controller
                 return response()->json(['message' => 'Upload failed: ' . $e->getMessage()], 500);
             }
         }
-        
+
         $user->update([
             'name' => $request->input('name', $user->name),
             'avatar' => $imageUrl,
