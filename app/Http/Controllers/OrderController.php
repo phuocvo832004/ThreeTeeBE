@@ -67,7 +67,7 @@ class OrderController extends Controller
             'payment_date' => now(), 
         ]);
     
-        $frontendUrl = $frontendBaseUrl . '/cancel';
+        $frontendUrl = $frontendBaseUrl . '/success';
         return redirect()->away($frontendUrl);
     }
     
