@@ -33,7 +33,7 @@ Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handle
 Route::middleware(['auth:sanctum'])->group(function () {
     // User profile
     Route::patch('/update-password', [UserController::class, 'updatePassword']);
-    Route::patch('/update-user', [UserController::class, 'updateUser']);
+    Route::post('/update-user', [UserController::class, 'updateUser']);
     Route::get('/user', [UserController::class, 'currentUser']);
 
     // Orders and order details
