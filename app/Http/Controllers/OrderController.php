@@ -281,7 +281,7 @@ class OrderController extends Controller
                 }
             })
         ])
-        ->defaultSort('status') // Sắp xếp mặc định
+        ->defaultSort('status') 
         ->allowedSorts('status', 'totalprice', 'payment_status', 'payment_date', 'order_date') // Các trường được phép sắp xếp
         ->paginate(); 
 

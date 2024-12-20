@@ -56,6 +56,7 @@ class UserController extends Controller
                         AllowedFilter::partial('email')
                     ])
                     ->defaultSort('created_at')
+                    ->allowedSorts('created_at')
                     ->paginate();
     
         return response()->json([
