@@ -55,12 +55,11 @@ class OrderController extends Controller
     
     public function paymentReturn(Order $order)
     {
+        $frontendBaseUrl = env('FRONTEND_URL', 'https://threetee.netlify.app');
+    
         if ($order->payment_status === 'paid') {
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment was successful',
-                'order_id' => $order->id,
-            ]);
+            $frontendUrl = $frontendBaseUrl . '/success';
+            return redirect()->away($frontendUrl);
         }
     
         $order->update([
@@ -68,14 +67,11 @@ class OrderController extends Controller
             'payment_date' => now(), 
         ]);
     
-        return response()->json([
-            'success' => false,
-            'message' => 'Payment was not successful',
-            'order_id' => $order->id,
-        ]);
+        $frontendUrl = $frontendBaseUrl . '/cancel';
+        return redirect()->away($frontendUrl);
     }
+    
       
-
     public function paymentCancel(Order $order)
     {
         $order->update([
