@@ -215,6 +215,8 @@ class OrderController extends Controller
 
     public function show(Request $request, Order $Order)
     {
+        $Order->load('order_detail.product');
+
         return new OrderResource($Order);
     }
 
@@ -331,8 +333,9 @@ class OrderController extends Controller
 
     public function getOrderAdmin($orderId)
     {
-        $order = Order::with(['user', 'orderDetails.productDetail.product'])->find($orderId);
-
+        $order = Order::with(['user', 'orderDetails.productDetail.product.images' => function($query) {
+            $query->limit(1); 
+        }])->find($orderId);
         if (!$order) {
             return response()->json([
                 'message' => 'Order not found',
@@ -341,4 +344,27 @@ class OrderController extends Controller
     
         return response()->json($order);
     }
+
+    public function getOrderUser($orderId)
+    {
+
+        $order = Order::with(['user', 'orderDetails.productDetail.product.images' => function($query) {
+            $query->limit(1); 
+        }])->find($orderId);
+            
+        if (!$order) {
+            return response()->json([
+                'message' => 'Order not found',
+            ], 404);
+        }
+    
+        if (Auth::check() && Auth::id() !== $order->user_id) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+    
+        return response()->json($order);
+    }
+    
 }
