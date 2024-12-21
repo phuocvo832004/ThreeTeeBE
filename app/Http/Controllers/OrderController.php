@@ -23,8 +23,12 @@ class OrderController extends Controller
     protected function hashOrderId($orderId)
     {
         $secretKey = config('app.key');
-        return hash_hmac('crc32', $orderId, $secretKey);
+        $hash = hash_hmac('sha256', $orderId, $secretKey);
+        $numericHash = hexdec(substr($hash, 0, 15)); 
+        return $numericHash % 9007199254740991; 
     }
+    
+    
     
     public function createPaymentLink(Request $request, Order $order)
     {
@@ -85,6 +89,7 @@ class OrderController extends Controller
             'payment_date' => now(),
         ]);
     
+        // Sử dụng biến môi trường FRONTEND_URL
         $frontendUrl = env('FRONTEND_URL', 'https://threetee.netlify.app') . '/cancel';
     
         return redirect()->away($frontendUrl);
@@ -112,7 +117,7 @@ class OrderController extends Controller
         }
     }
     
-    
+
     public function handlePaymentCallback(Request $request)
     {
         $data = $request->all();
@@ -145,14 +150,14 @@ class OrderController extends Controller
         ]);
     }
     
-    
+
     public function cancelPaymentLink(Request $request, Order $order)
     {
         try {
             $body = $request->input('cancellationReason') ? ['cancellationReason' => $request->input('cancellationReason')] : null;
-    
+
             $response = $this->payOS->cancelPaymentLink($order->payment_link_id, $body); 
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Payment link canceled successfully',
@@ -162,7 +167,7 @@ class OrderController extends Controller
             return $this->handleException($th);
         }
     }
-    
+
     protected function handleException(\Throwable $th)
     {
         return response()->json([
@@ -170,6 +175,7 @@ class OrderController extends Controller
             'message' => $th->getMessage(),
         ], 500);
     }
+
 
     public function index(Request $request)
     {
@@ -215,8 +221,6 @@ class OrderController extends Controller
 
     public function show(Request $request, Order $Order)
     {
-        $Order->load('order_detail.product');
-
         return new OrderResource($Order);
     }
 
@@ -333,9 +337,8 @@ class OrderController extends Controller
 
     public function getOrderAdmin($orderId)
     {
-        $order = Order::with(['user', 'orderDetails.productDetail.product.images' => function($query) {
-            $query->limit(1); 
-        }])->find($orderId);
+        $order = Order::with(['user', 'orderDetails.productDetail.product'])->find($orderId);
+
         if (!$order) {
             return response()->json([
                 'message' => 'Order not found',
@@ -344,27 +347,4 @@ class OrderController extends Controller
     
         return response()->json($order);
     }
-
-    public function getOrderUser($orderId)
-    {
-
-        $order = Order::with(['user', 'orderDetails.productDetail.product.images' => function($query) {
-            $query->limit(1); 
-        }])->find($orderId);
-            
-        if (!$order) {
-            return response()->json([
-                'message' => 'Order not found',
-            ], 404);
-        }
-    
-        if (Auth::check() && Auth::id() !== $order->user_id) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
-        }
-    
-        return response()->json($order);
-    }
-    
 }
