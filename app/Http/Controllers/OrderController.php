@@ -23,9 +23,8 @@ class OrderController extends Controller
     protected function hashOrderId($orderId)
     {
         $secretKey = config('app.key');
-        return hash_hmac('sha256', $orderId, $secretKey);
+        return hash_hmac('crc32', $orderId, $secretKey);
     }
-    
     
     public function createPaymentLink(Request $request, Order $order)
     {
@@ -86,7 +85,6 @@ class OrderController extends Controller
             'payment_date' => now(),
         ]);
     
-        // Sử dụng biến môi trường FRONTEND_URL
         $frontendUrl = env('FRONTEND_URL', 'https://threetee.netlify.app') . '/cancel';
     
         return redirect()->away($frontendUrl);
@@ -114,7 +112,7 @@ class OrderController extends Controller
         }
     }
     
-
+    
     public function handlePaymentCallback(Request $request)
     {
         $data = $request->all();
@@ -147,14 +145,14 @@ class OrderController extends Controller
         ]);
     }
     
-
+    
     public function cancelPaymentLink(Request $request, Order $order)
     {
         try {
             $body = $request->input('cancellationReason') ? ['cancellationReason' => $request->input('cancellationReason')] : null;
-
+    
             $response = $this->payOS->cancelPaymentLink($order->payment_link_id, $body); 
-
+    
             return response()->json([
                 'success' => true,
                 'message' => 'Payment link canceled successfully',
@@ -164,7 +162,7 @@ class OrderController extends Controller
             return $this->handleException($th);
         }
     }
-
+    
     protected function handleException(\Throwable $th)
     {
         return response()->json([
@@ -172,7 +170,6 @@ class OrderController extends Controller
             'message' => $th->getMessage(),
         ], 500);
     }
-
 
     public function index(Request $request)
     {
