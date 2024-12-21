@@ -86,23 +86,32 @@ class OrderController extends Controller
             return $this->handleException($th);
         }
     }
-    
-    public function paymentReturn(Order $order)
+    public function paymentReturn($hashedOrderId)
     {
-        $frontendBaseUrl = env('FRONTEND_URL', 'https://threetee.netlify.app');
+        try {
+            $order = $this->resolveOrderByHashedId($hashedOrderId);
+            $frontendBaseUrl = env('FRONTEND_URL', 'https://threetee.netlify.app');
+            
+            if ($order->payment_status === 'paid') {
+                // Chuyển hướng tới URL success nếu đã thanh toán thành công
+                return redirect()->away($frontendBaseUrl . '/success');
+            }
     
-        if ($order->payment_status === 'paid') {
-            $frontendUrl = $frontendBaseUrl . '/success';
-            return redirect()->away($frontendUrl);
+            // Kiểm tra và cập nhật trạng thái nếu cần
+            if ($order->payment_status !== 'cancelled') {
+                $order->update([
+                    'payment_status' => 'unpaid',
+                    'payment_date' => now(),
+                ]);
+            }
+    
+            // Chuyển hướng tới URL success
+            return redirect()->away($frontendBaseUrl . '/success');
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Order not found'], 404);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'An unexpected error occurred'], 500);
         }
-    
-        $order->update([
-            'payment_status' => 'unpaid', 
-            'payment_date' => now(), 
-        ]);
-    
-        $frontendUrl = $frontendBaseUrl . '/success';
-        return redirect()->away($frontendUrl);
     }
     
       
