@@ -28,6 +28,30 @@ class OrderController extends Controller
         $numericHash = hexdec(substr($hash, 0, 15)); 
         return $numericHash % 9007199254740991; 
     }
+
+    public function resolveOrderByHashedId($hashedOrderId)
+    {
+        // Tìm đơn hàng bằng hashed_order_id trước
+        $order = Order::where('hashed_order_id', $hashedOrderId)->first();
+    
+        // Nếu không tìm thấy, kiểm tra thông qua hàm hashOrderId
+        if (!$order) {
+            $orders = Order::all(); // Lấy tất cả các đơn hàng
+            foreach ($orders as $order) {
+                if ($this->hashOrderId($order->id) === intval($hashedOrderId)) {
+                    return $order;
+                }
+            }
+        }
+    
+        // Nếu không tìm thấy, ném ngoại lệ
+        if (!$order) {
+            throw new ModelNotFoundException("Order not found for hashed ID: $hashedOrderId");
+        }
+    
+        return $order;
+    }
+    
     
     public function createPaymentLink(Request $request, Order $order)
     {
@@ -82,17 +106,20 @@ class OrderController extends Controller
     }
     
       
-    public function paymentCancel(Order $order)
+    public function paymentCancel($hashedOrderId)
     {
-        $order->update([
-            'payment_status' => 'cancelled',
-            'payment_date' => now(),
-        ]);
+        try {
+            $order = $this->resolveOrderByHashedId($hashedOrderId);
+            $order->update([
+                'payment_status' => 'cancelled',
+                'payment_date' => now(),
+            ]);
     
-        // Sử dụng biến môi trường FRONTEND_URL
-        $frontendUrl = env('FRONTEND_URL', 'https://threetee.netlify.app') . '/cancel';
-    
-        return redirect()->away($frontendUrl);
+            $frontendUrl = env('FRONTEND_URL', 'https://threetee.netlify.app') . '/cancel';
+            return redirect()->away($frontendUrl);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
     }
     
     public function getPaymentInfo(Order $order)
@@ -135,7 +162,7 @@ class OrderController extends Controller
         $hashedOrderId = $data['paymentLinkId'];
         
         // Tìm order dựa vào hashed_order_id
-        $order = Order::where('payment_link_id', '4269499290661942')->first();
+        $order = Order::where('hashed_order_id', $hashedOrderId)->first();
     
         if (!$order) {
             return response()->json(['success' => false, 'message' => 'Order not found'], 404);
