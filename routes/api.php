@@ -26,7 +26,8 @@ Route::get('reviews/{product_id}', [ReviewController::class, 'index']);
 Route::get('/product-details', [ProductDetailController::class, 'index']);
 Route::get('/orders/{order}/payment-cancel', [OrderController::class, 'paymentCancel'])->name('orders.payment.cancel');
 Route::get('/orders/{order}/payment-return', [OrderController::class, 'paymentReturn'])->name('orders.payment.return');
-Route::post('/orders/{order}/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback');
+Route::post('/orders/payment-callback', [OrderController::class, 'handlePaymentCallback'])->name('orders.payment.callback');
+
 
 
 // user

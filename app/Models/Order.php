@@ -22,6 +22,7 @@ class Order extends Model
         'payment_status',
         'payment_link',
         'payment_link_id',
+        'hashed_order_id',
     ];
 
     protected $hidden = [

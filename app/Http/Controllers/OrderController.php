@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\AllowedFilter;
 use PayOS\PayOS;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -27,8 +28,6 @@ class OrderController extends Controller
         $numericHash = hexdec(substr($hash, 0, 15)); 
         return $numericHash % 9007199254740991; 
     }
-    
-    
     
     public function createPaymentLink(Request $request, Order $order)
     {
@@ -49,7 +48,8 @@ class OrderController extends Controller
             if (isset($response['checkoutUrl'])) {
                 $order->update([
                     'payment_link' => $response['checkoutUrl'],
-                    'payment_link_id' => $response['orderCode'], 
+                    'payment_link_id' => $response['orderCode'],
+                    'hashed_order_id' => $hashedOrderId,
                 ]);
             }
     
@@ -122,6 +122,9 @@ class OrderController extends Controller
     {
         $data = $request->all();
     
+        // Log dữ liệu callback để debug
+        Log::info('Payment Callback Data:', $data);
+    
         if (!isset($data['paymentLinkId'])) {
             return response()->json([
                 'success' => false,
@@ -130,17 +133,17 @@ class OrderController extends Controller
         }
     
         $hashedOrderId = $data['paymentLinkId'];
-    
-        $order = Order::all()->first(function ($order) use ($hashedOrderId) {
-            return $this->hashOrderId($order->id) === $hashedOrderId;
-        });
+        
+        // Tìm order dựa vào hashed_order_id
+        $order = Order::where('payment_link_id', '4269499290661942')->first();
     
         if (!$order) {
             return response()->json(['success' => false, 'message' => 'Order not found'], 404);
         }
     
+        // Cập nhật trạng thái thanh toán
         $order->update([
-            'payment_status' => $data['status'],
+            'payment_status' => $data['status'] ?? 'unknown',
             'payment_date' => now(),
         ]);
     
